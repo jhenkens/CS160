@@ -6,11 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		D4FC75B016A4B302006525E8 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4FC75AF16A4B302006525E8 /* main.cpp */; };
-		D4FC75B216A4B302006525E8 /* CS160.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D4FC75B116A4B302006525E8 /* CS160.1 */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		D4FC75A916A4B302006525E8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -18,7 +13,6 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				D4FC75B216A4B302006525E8 /* CS160.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -26,8 +20,6 @@
 
 /* Begin PBXFileReference section */
 		D4FC75AB16A4B302006525E8 /* CS160 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS160; sourceTree = BUILT_PRODUCTS_DIR; };
-		D4FC75AF16A4B302006525E8 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		D4FC75B116A4B302006525E8 /* CS160.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = CS160.1; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +36,6 @@
 		D4FC75A016A4B302006525E8 = {
 			isa = PBXGroup;
 			children = (
-				D4FC75AE16A4B302006525E8 /* CS160 */,
 				D4FC75AC16A4B302006525E8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,15 +46,6 @@
 				D4FC75AB16A4B302006525E8 /* CS160 */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		D4FC75AE16A4B302006525E8 /* CS160 */ = {
-			isa = PBXGroup;
-			children = (
-				D4FC75AF16A4B302006525E8 /* main.cpp */,
-				D4FC75B116A4B302006525E8 /* CS160.1 */,
-			);
-			path = CS160;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,7 +99,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4FC75B016A4B302006525E8 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
