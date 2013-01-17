@@ -1,38 +1,60 @@
 
 %{
-	#include <stdio.h>
-	int yylex(void);
-	void yyerror(char *);
+    #include <stdio.h>
+    int yylex(void);
+    void yyerror(char *);
 %}
 
 
 %%
 
-List    : List RelExpr ';' {printf("parsed expresion\n");}
-		| RelExpr ';' {printf("parsed expresion\n");}
+List    : RelExpr List1
         ;
 
-RelExpr : Expr '<' Expr
-		| Expr '>' Expr
-		| Expr '=' Expr
-		| Expr
+List1   : ';' List2
+        ;
 
-Expr    : Expr '*' Expr 
-		| Expr '/' Expr
-        | Expr '+' Expr 
-        | Expr '-' Expr
-        | 'n'
-        | '(' Expr ')'
+List2   :
+        | List
+        ;
+
+RelExpr : ExprAS RelExpr2
+        ;
+
+RelExpr2: '<' ExprAS
+        | '>' ExprAS
+        | '=' ExprAS
+        | // Empty
+        ;
+
+ExprAS  : ExprMD ExprAS2
+        ;
+
+ExprAS2 : '+' ExprAS
+        | '-' ExprAS
+        | //Empty
+        ;
+
+ExprMD  : Vals ExprMD2
+        ;
+
+ExprMD2 : '*' ExprMD
+        | '/' ExprMD
+        | //Empty
+        ;
+
+Vals    : 'n'
+        | '(' ExprAS ')'
         ;
 
 %%
 
 void yyerror(char *s) {
-	fprintf(stderr, "%s\n", s);
-	return;
+    fprintf(stderr, "%s\n", s);
+    return;
 }
 
 int main(void) {
-	yyparse();
-	return 0;
+    yyparse();
+    return 0;
 }
