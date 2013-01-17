@@ -1,0 +1,372 @@
+Grammar
+
+    0 $accept: List $end
+
+    1 List: RelExpr List1
+
+    2 List1: ';' List2
+
+    3 List2: /* empty */
+    4      | List
+
+    5 RelExpr: ExprAS RelExpr2
+
+    6 RelExpr2: '<' ExprAS
+    7         | '>' ExprAS
+    8         | '=' ExprAS
+    9         | /* empty */
+
+   10 ExprAS: ExprMD ExprAS2
+
+   11 ExprAS2: '+' ExprAS
+   12        | '-' ExprAS
+   13        | /* empty */
+
+   14 ExprMD: Vals ExprMD2
+
+   15 ExprMD2: '*' ExprMD
+   16        | '/' ExprMD
+   17        | /* empty */
+
+   18 Vals: 'n'
+   19     | '(' ExprAS ')'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 19
+')' (41) 19
+'*' (42) 15
+'+' (43) 11
+'-' (45) 12
+'/' (47) 16
+';' (59) 2
+'<' (60) 6
+'=' (61) 8
+'>' (62) 7
+'n' (110) 18
+error (256)
+
+
+Nonterminals, with rules where they appear
+
+$accept (14)
+    on left: 0
+List (15)
+    on left: 1, on right: 0 4
+List1 (16)
+    on left: 2, on right: 1
+List2 (17)
+    on left: 3 4, on right: 2
+RelExpr (18)
+    on left: 5, on right: 1
+RelExpr2 (19)
+    on left: 6 7 8 9, on right: 5
+ExprAS (20)
+    on left: 10, on right: 5 6 7 8 11 12 19
+ExprAS2 (21)
+    on left: 11 12 13, on right: 10
+ExprMD (22)
+    on left: 14, on right: 10 15 16
+ExprMD2 (23)
+    on left: 15 16 17, on right: 14
+Vals (24)
+    on left: 18 19, on right: 14
+
+
+state 0
+
+    0 $accept: . List $end
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    List     go to state 3
+    RelExpr  go to state 4
+    ExprAS   go to state 5
+    ExprMD   go to state 6
+    Vals     go to state 7
+
+
+state 1
+
+   18 Vals: 'n' .
+
+    $default  reduce using rule 18 (Vals)
+
+
+state 2
+
+   19 Vals: '(' . ExprAS ')'
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 8
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 3
+
+    0 $accept: List . $end
+
+    $end  shift, and go to state 9
+
+
+state 4
+
+    1 List: RelExpr . List1
+
+    ';'  shift, and go to state 10
+
+    List1  go to state 11
+
+
+state 5
+
+    5 RelExpr: ExprAS . RelExpr2
+
+    '<'  shift, and go to state 12
+    '>'  shift, and go to state 13
+    '='  shift, and go to state 14
+
+    $default  reduce using rule 9 (RelExpr2)
+
+    RelExpr2  go to state 15
+
+
+state 6
+
+   10 ExprAS: ExprMD . ExprAS2
+
+    '+'  shift, and go to state 16
+    '-'  shift, and go to state 17
+
+    $default  reduce using rule 13 (ExprAS2)
+
+    ExprAS2  go to state 18
+
+
+state 7
+
+   14 ExprMD: Vals . ExprMD2
+
+    '*'  shift, and go to state 19
+    '/'  shift, and go to state 20
+
+    $default  reduce using rule 17 (ExprMD2)
+
+    ExprMD2  go to state 21
+
+
+state 8
+
+   19 Vals: '(' ExprAS . ')'
+
+    ')'  shift, and go to state 22
+
+
+state 9
+
+    0 $accept: List $end .
+
+    $default  accept
+
+
+state 10
+
+    2 List1: ';' . List2
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    $default  reduce using rule 3 (List2)
+
+    List     go to state 23
+    List2    go to state 24
+    RelExpr  go to state 4
+    ExprAS   go to state 5
+    ExprMD   go to state 6
+    Vals     go to state 7
+
+
+state 11
+
+    1 List: RelExpr List1 .
+
+    $default  reduce using rule 1 (List)
+
+
+state 12
+
+    6 RelExpr2: '<' . ExprAS
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 25
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 13
+
+    7 RelExpr2: '>' . ExprAS
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 26
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 14
+
+    8 RelExpr2: '=' . ExprAS
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 27
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 15
+
+    5 RelExpr: ExprAS RelExpr2 .
+
+    $default  reduce using rule 5 (RelExpr)
+
+
+state 16
+
+   11 ExprAS2: '+' . ExprAS
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 28
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 17
+
+   12 ExprAS2: '-' . ExprAS
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprAS  go to state 29
+    ExprMD  go to state 6
+    Vals    go to state 7
+
+
+state 18
+
+   10 ExprAS: ExprMD ExprAS2 .
+
+    $default  reduce using rule 10 (ExprAS)
+
+
+state 19
+
+   15 ExprMD2: '*' . ExprMD
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprMD  go to state 30
+    Vals    go to state 7
+
+
+state 20
+
+   16 ExprMD2: '/' . ExprMD
+
+    'n'  shift, and go to state 1
+    '('  shift, and go to state 2
+
+    ExprMD  go to state 31
+    Vals    go to state 7
+
+
+state 21
+
+   14 ExprMD: Vals ExprMD2 .
+
+    $default  reduce using rule 14 (ExprMD)
+
+
+state 22
+
+   19 Vals: '(' ExprAS ')' .
+
+    $default  reduce using rule 19 (Vals)
+
+
+state 23
+
+    4 List2: List .
+
+    $default  reduce using rule 4 (List2)
+
+
+state 24
+
+    2 List1: ';' List2 .
+
+    $default  reduce using rule 2 (List1)
+
+
+state 25
+
+    6 RelExpr2: '<' ExprAS .
+
+    $default  reduce using rule 6 (RelExpr2)
+
+
+state 26
+
+    7 RelExpr2: '>' ExprAS .
+
+    $default  reduce using rule 7 (RelExpr2)
+
+
+state 27
+
+    8 RelExpr2: '=' ExprAS .
+
+    $default  reduce using rule 8 (RelExpr2)
+
+
+state 28
+
+   11 ExprAS2: '+' ExprAS .
+
+    $default  reduce using rule 11 (ExprAS2)
+
+
+state 29
+
+   12 ExprAS2: '-' ExprAS .
+
+    $default  reduce using rule 12 (ExprAS2)
+
+
+state 30
+
+   15 ExprMD2: '*' ExprMD .
+
+    $default  reduce using rule 15 (ExprMD2)
+
+
+state 31
+
+   16 ExprMD2: '/' ExprMD .
+
+    $default  reduce using rule 16 (ExprMD2)

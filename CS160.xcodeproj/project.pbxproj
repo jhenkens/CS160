@@ -6,6 +6,10 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D4FC75BD16A4B474006525E8 /* calc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4FC75BA16A4B474006525E8 /* calc.cpp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		D4FC75A916A4B302006525E8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +24,9 @@
 
 /* Begin PBXFileReference section */
 		D4FC75AB16A4B302006525E8 /* CS160 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS160; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4FC75B816A4B474006525E8 /* calc_def.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; name = calc_def.l; path = Project1/calc_def.l; sourceTree = "<group>"; };
+		D4FC75B916A4B474006525E8 /* calc_def.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; name = calc_def.y; path = Project1/calc_def.y; sourceTree = "<group>"; };
+		D4FC75BA16A4B474006525E8 /* calc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = calc.cpp; path = Project1/calc.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +43,9 @@
 		D4FC75A016A4B302006525E8 = {
 			isa = PBXGroup;
 			children = (
+				D4FC75B816A4B474006525E8 /* calc_def.l */,
+				D4FC75B916A4B474006525E8 /* calc_def.y */,
+				D4FC75BA16A4B474006525E8 /* calc.cpp */,
 				D4FC75AC16A4B302006525E8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,6 +109,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4FC75BD16A4B474006525E8 /* calc.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
