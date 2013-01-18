@@ -8,13 +8,13 @@
 
 %%
 
-List    : RelExpr List1
+List    : RelExpr ListP
         ;
 
-List1   : ';' List2
+ListP   : ';' ListPP
         ;
 
-List2   :
+ListPP   :
         | List
         ;
 
@@ -27,18 +27,18 @@ RelExpr2: '<' ExprAS
         | // Empty
         ;
 
-ExprAS  : ExprMD ExprAS2
+ExprAS  : ExprMD ExprASP
         ;
 
-ExprAS2 : '+' ExprAS
+ExprASP : '+' ExprAS
         | '-' ExprAS
         | //Empty
         ;
 
-ExprMD  : Vals ExprMD2
+ExprMD  : Vals ExprMDP
         ;
 
-ExprMD2 : '*' ExprMD
+ExprMDP : '*' ExprMD
         | '/' ExprMD
         | //Empty
         ;
