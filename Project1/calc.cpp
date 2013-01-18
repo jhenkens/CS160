@@ -630,21 +630,23 @@ void parser_t::ExprASP()
     switch (scanner.next_token()) {
         case T_plus:
             eat_token(T_plus);
-            ExprAS();
+            ExprMD();
             temp1 = evalstack.top();
             evalstack.pop();
             temp2 = evalstack.top();
             evalstack.pop();
             evalstack.push(temp1+temp2);
+            ExprASP();
             break;
         case T_minus:
             eat_token(T_minus);
-            ExprAS();
+            ExprMD();
             temp1 = evalstack.top();
             evalstack.pop();
             temp2 = evalstack.top();
             evalstack.pop();
             evalstack.push(temp2-temp1);
+            ExprASP();
             break;
         default:
             break;
@@ -667,21 +669,23 @@ void parser_t::ExprMDP()
     switch (scanner.next_token()) {
         case T_times:
             eat_token(T_times);
-            ExprMD();
+            Vals();
             temp1 = evalstack.top();
             evalstack.pop();
             temp2 = evalstack.top();
             evalstack.pop();
             evalstack.push(temp1*temp2);
+            ExprMDP();
             break;
         case T_div:
             eat_token(T_div);
-            ExprMD();
+            Vals();
             temp1 = evalstack.top();
             evalstack.pop();
             temp2 = evalstack.top();
             evalstack.pop();
             evalstack.push(temp2/temp1);
+            ExprMDP();
             break;
         default:
             break;

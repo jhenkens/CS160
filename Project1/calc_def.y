@@ -11,10 +11,10 @@
 List    : RelExpr ListP
         ;
 
-ListP   : ';' ListPP
+ListP   : ';' {printf("parsed expresion\n");} ListPP
         ;
 
-ListPP   :
+ListPP  :
         | List
         ;
 
@@ -30,16 +30,16 @@ RelExpr2: '<' ExprAS
 ExprAS  : ExprMD ExprASP
         ;
 
-ExprASP : '+' ExprAS
-        | '-' ExprAS
+ExprASP : '+' ExprMD ExprASP
+        | '-' ExprMD ExprASP
         | //Empty
         ;
 
 ExprMD  : Vals ExprMDP
         ;
 
-ExprMDP : '*' ExprMD
-        | '/' ExprMD
+ExprMDP : '*' Vals ExprMDP
+        | '/' Vals ExprMDP
         | //Empty
         ;
 
