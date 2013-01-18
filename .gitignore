@@ -1,2 +1,17 @@
 *.xcworkspace
 xcuserdata
+*.o
+
+*.svg
+
+Project1/y.tab.h
+
+Project1/y.tab.c
+
+*.out
+
+Project1/lex.yy.c
+
+Project1/calc_def
+
+Project1/calc

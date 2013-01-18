@@ -120,6 +120,8 @@ public:
     
 	// constructor - inits g_next_token
 	scanner_t();
+    //Grabs the current num
+    int get_num();
     
 private:
     
@@ -141,6 +143,15 @@ private:
     int line;
     char current_char;
 };
+
+int scanner_t::get_num()
+{
+    if(g_next_token==T_num){
+        return atoi(g_next_token_text->c_str());
+    } else{
+        mismatch_error(T_num);
+    }
+}
 
 token_type scanner_t::next_token()
 {
@@ -437,8 +448,10 @@ char* parsetree_t::stuple_to_string(const stuple& s)
 
 class parser_t {
 private:
+    
 	scanner_t scanner;
 	parsetree_t parsetree;
+    stack<int> evalstack;
 	void eat_token(token_type t);
 	void syntax_error(nonterm_type);
 	void div_by_zero_error();
@@ -527,6 +540,15 @@ void parser_t::ListP()
 {
     parsetree.push(NT_ListP);
     eat_token(T_semicolon);
+    if(evalstack.size() > 1 ){
+        fprintf(stderr,"Evalstack>1!! Error occured in parsing current statement!\n");
+    } else if (evalstack.size() == 1){
+        int temp = evalstack.top();
+        evalstack.pop();
+        fprintf(stderr,"%d\n",temp);
+    } else{
+        fprintf(stderr,"\n");
+    }
     ListPP();
     parsetree.pop();
 }
@@ -557,19 +579,35 @@ void parser_t::RelExpr()
 
 void parser_t::RelExprP()
 {
+    int temp1, temp2;
     parsetree.push(NT_RelExprP);
     switch (scanner.next_token()) {
         case T_lt:
             eat_token(T_lt);
             ExprAS();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp2<temp1);
             break;
         case T_gt:
             eat_token(T_gt);
             ExprAS();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp2>temp1);
             break;
         case T_eq:
             eat_token(T_eq);
             ExprAS();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp2==temp1);
             break;
         default:
             break;
@@ -587,15 +625,26 @@ void parser_t::ExprAS()
 
 void parser_t::ExprASP()
 {
+    int temp1,temp2;
     parsetree.push(NT_ExprASP);
     switch (scanner.next_token()) {
         case T_plus:
             eat_token(T_plus);
             ExprAS();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp1+temp2);
             break;
         case T_minus:
             eat_token(T_minus);
             ExprAS();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp2-temp1);
             break;
         default:
             break;
@@ -613,15 +662,26 @@ void parser_t::ExprMD()
 
 void parser_t::ExprMDP()
 {
+    int temp1, temp2;
     parsetree.push(NT_ExprMDP);
     switch (scanner.next_token()) {
         case T_times:
             eat_token(T_times);
             ExprMD();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp1*temp2);
             break;
         case T_div:
             eat_token(T_div);
             ExprMD();
+            temp1 = evalstack.top();
+            evalstack.pop();
+            temp2 = evalstack.top();
+            evalstack.pop();
+            evalstack.push(temp2/temp1);
             break;
         default:
             break;
@@ -634,6 +694,7 @@ void parser_t::Vals()
     parsetree.push(NT_Vals);
     switch (scanner.next_token()) {
         case T_num:
+            evalstack.push(scanner.get_num());
             eat_token(T_num);
             break;
         case T_openparen:
