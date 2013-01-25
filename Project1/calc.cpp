@@ -684,6 +684,9 @@ void parser_t::ExprMDP()
             eat_token(T_div);
             Vals();
             temp1 = evalstack.top();
+            if(temp1 == 0 ) {
+                div_by_zero_error();
+            }
             evalstack.pop();
             temp2 = evalstack.top();
             evalstack.pop();

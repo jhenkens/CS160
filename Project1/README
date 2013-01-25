@@ -1,0 +1,10 @@
+Johan Henkens
+johan@henkens.com (or jhenkens@umail.ucsb.edu)
+
+I first made my grammar unambigious, then made it LL(1). I implemented this directly 
+in calc.cpp, and then went about creating the calculator portion. Unfortunately, my
+first grammar was right associative, so I had to modify my grammar, which I did in
+calc_def.y, to make it left associative. Once I changed the grammar, I changed my
+implementation in calc.cpp to evaluate the expressions with left associativity.
+
+To my knowledge, all parts of the project are working correctly.
