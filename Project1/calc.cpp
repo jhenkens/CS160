@@ -246,6 +246,9 @@ token_type scanner_t::next_token()
                 }
                 g_next_token=T_num;
                 break;
+            default:
+                scan_error(current_char);
+                break;
         }
     }
     return g_next_token;
