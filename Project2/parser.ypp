@@ -1,11 +1,11 @@
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <iostream>
-	#define YYDEBUG 1
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <iostream>
+    #define YYDEBUG 1
 
-	int yylex(void);
-	void yyerror(const char *);
+    int yylex(void);
+    void yyerror(const char *);
 %}
 
 /* Enables verbose error messages */
@@ -15,21 +15,69 @@
 /* WRITE ME: put all your type definitions here*/
 /* WRITE ME: put all your precedence/associativity rules here*/
 
+%token BOOL
+%token ELSE
+%token IF
+%token INT
+%token WHILE
+%token VAR
+%token FUNCTION
+%token INTARRAY
+%token RETURN
+
+%token EQ
+%token GT
+%token GE
+%token LT
+%token LE
+%token NE
+%token AND
+%token OR
+%token NOT
+%token PLUS
+%token MINUS
+%token MULT
+%token DIVIDE
+
+%token TRUE
+%token FALSE
+%token IDENTIFIER
+%token INTEGER
+
+%token SEMICOLON
+%token COMMA
+%token BAR
+%token LBRACE
+%token RBRACE
+%token RPAREN
+%token LPAREN
+%token LBRACKET
+%token RBRACKET
+%token ASSIGN
+
+%union {
+    int ival;
+    char *sval;
+}
+
+%token <ival> INTEGER
+%token <sval> IDENTIFIER
+
 %%
 
 /* WRITE ME: This is the language from Project 1(Calculator). You need
-			 to put the productions for the grammar for the
-			 language for this project here*/
-			 
+             to put the productions for the grammar for the
+             language for this project here*/
+
 List    : List RelExpr ';' {/*Your c code goes here!!!*/}
-	| RelExpr ';'      {/*Your C code goes here!!!*/}
+    | RelExpr ';'      {/*Your C code goes here!!!*/}
         ;
 
 RelExpr : Expr '<' Expr
         | Expr '>' Expr
-	| Expr '=' Expr
-	| Expr
-	;
+    | Expr '=' Expr
+    | Expr
+    ;
 
 Expr    : Expr '*' Expr
         | Expr '+' Expr 
@@ -46,6 +94,6 @@ Expr    : Expr '*' Expr
 extern int yylineno;
 
 void yyerror(const char *s) {
-	fprintf(stderr, "%s at line %d\n", s, yylineno);
-	exit(0);
+    fprintf(stderr, "%s at line %d\n", s, yylineno);
+    exit(0);
 }
