@@ -15,7 +15,44 @@ void yyerror(const char *);
 	    definitions here.
 
 */
+%token BOOL
+%token ELSE
+%token IF
+%token INT
+%token WHILE
+%token VAR
+%token FUNCTION
+%token INTARRAY
+%token RETURN
 
+%token EQ
+%token GT
+%token GE
+%token LT
+%token LE
+%token NE
+%token AND
+%token OR
+%token NOT
+%token PLUS
+%token MINUS
+%token MULT
+%token DIVIDE
+
+%token TRUE
+%token FALSE
+%token IDENTIFIER
+%token INTEGER
+
+%token RPAREN
+%token LPAREN
+%token ASSIGN
+%token SEMICOLON
+%token COMMA
+%token LBRACE
+%token RBRACE
+%token LBRACKET
+%token RBRACKET
 /*
   The example below is very simple, but it shows almost everything you will need
   to do for this first part.
@@ -30,8 +67,10 @@ void yyerror(const char *);
 
 %%
 
-[\*\(\);\+\-\*\/<>=]   { return *yytext; }
-[0-9][0-9]*           { return 'n'; }
+bool        { printf("scanned a %s\n",yytext);  return BOOL;}
+[\*\(\);\+\-\*\/<>=]                        { printf("scanned a %s\n",yytext);  return *yytext; }
+[0-9]+           { return 'd'; }
+
 [ \t\n]               ; /* skip whitespace */
 
 .                     yyerror((char *) "invalid character");
