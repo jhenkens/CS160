@@ -69,6 +69,15 @@
              to put the productions for the grammar for the
              language for this project here*/
 
+Program         :   Function
+
+Function        :   ReturnType Identifier LPAREN ParameterList RPAREN LBRACE FunctionBody RBRACE
+
+FunctionBody    :   CodeBlockContents ReturnStatement
+
+CodeBlock       :   LBRACE CodeBlockContents RBRACE
+
+
 List    : List RelExpr ';' {/*Your c code goes here!!!*/}
     | RelExpr ';'      {/*Your C code goes here!!!*/}
         ;
