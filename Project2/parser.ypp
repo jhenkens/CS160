@@ -63,6 +63,10 @@
 
 %token <ival> INTEGER 
 %token <sval> IDENTIFIER
+%left OR
+%left AND
+%left EQ NE
+%left LT LE GT GE
 %left MINUS PLUS
 %left DIVIDE MULT
 
@@ -93,20 +97,17 @@ AdditionalParam : COMMA Parameter AdditionalParam
 Parameter       : ReturnType IDENTIFIER
                 ;
 
-Function        : {if(TESTING) printf("PARSER: In Function\n");} FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
+Function        : FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
                 ;
 
-FunctionBody    : {if(TESTING) printf("PARSER: in functionBody\n");} LBRACE BlockContents {if(TESTING) printf("PARSER: about to return in FunctionBody \n");} ReturnStatement RBRACE
-                ;
-
-BlockContents   : {if(TESTING) printf("PARSER: in blockContents\n");} Declarations NestedFunctions Statements {if(TESTING) printf("PARSER: finishedBlockContents \n");} 
+FunctionBody    : LBRACE Declarations NestedFunctions Statements ReturnStatement RBRACE
                 ;
 
 DeclTypes       : ReturnType
                 | INTARRAY LBRACKET INTEGER RBRACKET
                 ;
 
-Declarations    : {if(TESTING) printf("PARSER: in declarations \n");} Declaration Declarations
+Declarations    : Declaration Declarations
                 |
                 ;
 
@@ -121,85 +122,74 @@ NestedFunctions : Function NestedFunctions
                 |
                 ;
 
-Statements      : {if(TESTING) printf("PARSER: in Statements \n");} Statement Statements
+Statements      : Statement Statements
                 |
                 ;
 
-Statement       :   Assignment
-                |   FunctionCall
-                |   IfStatement
-                |   WhileStatement
+Statement       : Assignment
+                | FunctionCall
+                | IfStatement
+                | WhileStatement
                 ;
 
-Idens           :   IDENTIFIER
-                |   ArrayAccess
+Idens           : IDENTIFIER
+                | ArrayAccess
                 ;
 
-Assignment      :   Idens ASSIGN Expr SEMICOLON
+Assignment      : Idens ASSIGN Expr SEMICOLON
                 ;
 
-FunctionCall    :   Idens ASSIGN IDENTIFIER ParameterValues SEMICOLON
+FunctionCall    : Idens ASSIGN IDENTIFIER ParameterValues SEMICOLON
                 ;
 
-ParameterValues :   LPAREN RPAREN
-                |   LPAREN Expr AdditionalVals RPAREN
+ParameterValues : LPAREN RPAREN
+                | LPAREN Expr AdditionalVals RPAREN
                 ;
 
-AdditionalVals  :   COMMA Expr AdditionalVals
+AdditionalVals  : COMMA Expr AdditionalVals
                 |
                 ;
 
-IfStatement     :   IF LPAREN BoolExpr RPAREN CodeBlock ElseStatement
+IfStatement     : IF LPAREN Expr RPAREN CodeBlock ElseStatement
                 ;
 
-ElseStatement   :   ELSE CodeBlock
+ElseStatement   : ELSE CodeBlock
                 |
                 ;
 
-WhileStatement  :   WHILE LPAREN BoolExpr RPAREN CodeBlock
+WhileStatement  : WHILE LPAREN Expr RPAREN CodeBlock
                 ;
 
-ReturnStatement :  {if(TESTING) printf("PARSER: in return statement \n");} RETURN {if(TESTING) printf("Before EXPR in return statement \n");} Expr SEMICOLON
+ReturnStatement : RETURN Expr SEMICOLON
                 ;
 
-CodeBlock       :   LBRACE BlockContents RBRACE
+CodeBlock       : LBRACE Statements RBRACE
                 ;
 
 ArrayAccess     : IDENTIFIER LBRACKET INTEGER RBRACKET
                 ;
 
 /* Starting Expression Section */
-Expr            : ArithExpr
-                | BoolExpr
-                ;
-
-BoolExpr        : LPAREN BoolExpr RPAREN
-                | BoolExpr AND BoolExpr
-                | BoolExpr OR BoolExpr
-                | ArithExpr LT ArithExpr
-                | ArithExpr GT ArithExpr
-                | ArithExpr LE ArithExpr
-                | ArithExpr GE ArithExpr
-                | BoolExpr EQ BoolExpr
-                | ArithExpr EQ ArithExpr
-                | BoolExpr NE BoolExpr
-                | ArithExpr NE ArithExpr
+Expr            : LPAREN Expr RPAREN
+                | Expr AND Expr
+                | Expr OR Expr
+                | Expr LT Expr
+                | Expr GT Expr
+                | Expr LE Expr
+                | Expr GE Expr
+                | Expr EQ Expr
+                | Expr NE Expr
                 | TRUE
                 | FALSE
-                | IDENTIFIER
-                | NOT BoolExpr
-                ;
-
-ArithExpr       : LPAREN ArithExpr RPAREN
-                | ArithExpr PLUS ArithExpr
-                | ArithExpr MINUS ArithExpr
-                | ArithExpr MULT ArithExpr
-                | ArithExpr DIVIDE ArithExpr
-                | MINUS ArithExpr
+                | NOT Expr
+                | Expr PLUS Expr
+                | Expr MINUS Expr
+                | Expr MULT Expr
+                | Expr DIVIDE Expr
+                | MINUS Expr
                 | INTEGER
                 | Idens
                 ;
-
 
 %%
 
