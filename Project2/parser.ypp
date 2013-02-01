@@ -60,8 +60,9 @@
     char *sval;
 }
 
-%token <ival> INTEGER
+%token <ival> INTEGER 
 %token <sval> IDENTIFIER
+
 
 %%
 
@@ -69,33 +70,135 @@
              to put the productions for the grammar for the
              language for this project here*/
 
-Program         :   Function
+Program         :   Function Program2
 
-Function        :   ReturnType Identifier LPAREN ParameterList RPAREN LBRACE FunctionBody RBRACE
+Program2        :   Function Program2
+                |
+                ;
 
-FunctionBody    :   CodeBlockContents ReturnStatement
+ReturnType      : BOOL
+                | INT
+                ;
 
-CodeBlock       :   LBRACE CodeBlockContents RBRACE
+ParameterList   : LPAREN RPAREN
+                | LPAREN Parameter AdditionalParam RPAREN
+                ;
+
+AdditionalParam : COMMA Parameter AdditionalParam
+                |
+                ;
+
+Parameter       : ReturnType IDENTIFIER
+                ;
+
+Function        : FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
+                ;
+
+FunctionBody    : LBRACE BlockContents ReturnStatement RBRACE
+                ;
+
+BlockContents   : Declarations NestedFunctions Statements
+                ;
+
+DeclTypes       : ReturnType
+                | INTARRAY LBRACKET INTEGER RBRACKET
+                ;
+
+Declarations    : Declaration Declarations
+                |
+                ;
+
+Declaration     : VAR DeclTypes IDENTIFIER AddtlIdens SEMICOLON
+                ;
+
+AddtlIdens      : COMMA IDENTIFIER AddtlIdens
+                |
+                ;
+
+NestedFunctions : Function NestedFunctions
+                |
+                ;
+
+Statements      : Statement Statements
+                |
+                ;
+
+Statement       :   Assignment
+                |   FunctionCall
+                |   IfStatement
+                |   WhileStatement
+                ;
+
+Idens           :   IDENTIFIER
+                |   ArrayAccess
+                ;
+
+Assignment      :   Idens ASSIGN Expr SEMICOLON
+                ;
+
+FunctionCall    :   Idens ASSIGN IDENTIFIER ParameterValues SEMICOLON
+                ;
+
+ParameterValues :   LPAREN RPAREN
+                |   LPAREN Expr AdditionalVals RPAREN
+                ;
+
+AdditionalVals  :   COMMA Expr AdditionalVals
+                |
+                ;
+
+IfStatement     :   IF LPAREN BoolExpr RPAREN CodeBlock ElseStatement
+                ;
+
+ElseStatement   :   ELSE CodeBlock
+                |
+                ;
+
+WhileStatement  :   WHILE LPAREN BoolExpr RPAREN CodeBlock
+                ;
+
+ReturnStatement :   RETURN Expr SEMICOLON
+                ;
+
+CodeBlock       :   LBRACE BlockContents RBRACE
+                ;
+
+ArrayAccess     : IDENTIFIER LBRACKET INTEGER RBRACKET
+                ;
+
+/* Starting Expression Section */
+Expr            : BoolExpr
+                | ArithExpr
+                ;
+
+BoolExpr        : LPAREN BoolExpr RPAREN
+                | BoolExpr AND BoolExpr
+                | BoolExpr OR BoolExpr
+                | ArithExpr LT ArithExpr
+                | ArithExpr GT ArithExpr
+                | ArithExpr LE ArithExpr
+                | ArithExpr GE ArithExpr
+                | BoolExpr EQ BoolExpr
+                | ArithExpr EQ ArithExpr
+                | BoolExpr NE BoolExpr
+                | ArithExpr NE ArithExpr
+                | TRUE
+                | FALSE
+                | IDENTIFIER
+                | NOT BoolExpr
+                ;
+
+ArithExpr       : LPAREN ArithExpr RPAREN
+                | ArithExpr PLUS ArithExpr
+                | ArithExpr MINUS ArithExpr
+                | ArithExpr MULT ArithExpr
+                | ArithExpr DIVIDE ArithExpr
+                | MINUS ArithExpr
+                | INTEGER
+                | Idens
+                ;
 
 
-List    : List RelExpr ';' {/*Your c code goes here!!!*/}
-    | RelExpr ';'      {/*Your C code goes here!!!*/}
-        ;
-
-RelExpr : Expr '<' Expr
-        | Expr '>' Expr
-    | Expr '=' Expr
-    | Expr
-    ;
-
-Expr    : Expr '*' Expr
-        | Expr '+' Expr 
-        | Expr '-' Expr
-        | Expr '/' Expr
-        | 'n'
-        | 'b' {printf("found bool")}
-        | '(' Expr ')'
-        ;
 %%
 
 /*You shouldn't have to do anything past this*/
