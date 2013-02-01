@@ -3,6 +3,7 @@
     #include <stdlib.h>
     #include <iostream>
     #define YYDEBUG 1
+    #define TESTING 1
 
     int yylex(void);
     void yyerror(const char *);
@@ -62,7 +63,8 @@
 
 %token <ival> INTEGER 
 %token <sval> IDENTIFIER
-
+%left MINUS PLUS
+%left DIVIDE MULT
 
 %%
 
@@ -70,9 +72,9 @@
              to put the productions for the grammar for the
              language for this project here*/
 
-Program         :   Function Program2
+Program         :  {if(TESTING) printf("PARSER: Starting program\n");} Function Program2
 
-Program2        :   Function Program2
+Program2        :  {if(TESTING) printf("PARSER: Program2\n");} Function Program2
                 |
                 ;
 
@@ -91,20 +93,20 @@ AdditionalParam : COMMA Parameter AdditionalParam
 Parameter       : ReturnType IDENTIFIER
                 ;
 
-Function        : FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
+Function        : {if(TESTING) printf("PARSER: In Function\n");} FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
                 ;
 
-FunctionBody    : LBRACE BlockContents ReturnStatement RBRACE
+FunctionBody    : {if(TESTING) printf("PARSER: in functionBody\n");} LBRACE BlockContents {if(TESTING) printf("PARSER: about to return in FunctionBody \n");} ReturnStatement RBRACE
                 ;
 
-BlockContents   : Declarations NestedFunctions Statements
+BlockContents   : {if(TESTING) printf("PARSER: in blockContents\n");} Declarations NestedFunctions Statements {if(TESTING) printf("PARSER: finishedBlockContents \n");} 
                 ;
 
 DeclTypes       : ReturnType
                 | INTARRAY LBRACKET INTEGER RBRACKET
                 ;
 
-Declarations    : Declaration Declarations
+Declarations    : {if(TESTING) printf("PARSER: in declarations \n");} Declaration Declarations
                 |
                 ;
 
@@ -119,7 +121,7 @@ NestedFunctions : Function NestedFunctions
                 |
                 ;
 
-Statements      : Statement Statements
+Statements      : {if(TESTING) printf("PARSER: in Statements \n");} Statement Statements
                 |
                 ;
 
@@ -157,7 +159,7 @@ ElseStatement   :   ELSE CodeBlock
 WhileStatement  :   WHILE LPAREN BoolExpr RPAREN CodeBlock
                 ;
 
-ReturnStatement :   RETURN Expr SEMICOLON
+ReturnStatement :  {if(TESTING) printf("PARSER: in return statement \n");} RETURN {if(TESTING) printf("Before EXPR in return statement \n");} Expr SEMICOLON
                 ;
 
 CodeBlock       :   LBRACE BlockContents RBRACE
@@ -167,8 +169,8 @@ ArrayAccess     : IDENTIFIER LBRACKET INTEGER RBRACKET
                 ;
 
 /* Starting Expression Section */
-Expr            : BoolExpr
-                | ArithExpr
+Expr            : ArithExpr
+                | BoolExpr
                 ;
 
 BoolExpr        : LPAREN BoolExpr RPAREN
