@@ -16,59 +16,58 @@
 /* WRITE ME: put all your type definitions here*/
 /* WRITE ME: put all your precedence/associativity rules here*/
 
-%token BOOL
-%token ELSE
-%token IF
-%token INT
-%token WHILE
-%token VAR
-%token FUNCTION
-%token INTARRAY
-%token RETURN
-
-%token EQ
-%token GT
-%token GE
-%token LT
-%token LE
-%token NE
-%token AND
-%token OR
-%token NOT
-%token PLUS
-%token MINUS
-%token MULT
-%token DIVIDE
-
-%token TRUE
-%token FALSE
-%token IDENTIFIER
-%token INTEGER
-
-%token SEMICOLON
-%token COMMA
-%token BAR
-%token LBRACE
-%token RBRACE
-%token RPAREN
-%token LPAREN
-%token LBRACKET
-%token RBRACKET
-%token ASSIGN
-
 %union {
     int ival;
     char *sval;
 }
 
-%token <ival> INTEGER 
-%token <sval> IDENTIFIER
-%left OR
-%left AND
-%left EQ NE
-%left LT LE GT GE
-%left MINUS PLUS
-%left DIVIDE MULT
+%token T_BOOL
+%token T_ELSE
+%token T_IF
+%token T_INT
+%token T_WHILE
+%token T_VAR
+%token T_FUNCTION
+%token T_INTARRAY
+%token T_RETURN
+
+%token T_EQ
+%token T_GT
+%token T_GE
+%token T_LT
+%token T_LE
+%token T_NE
+%token T_AND
+%token T_OR
+%token T_NOT
+%token T_PLUS
+%token T_MINUS
+%token T_ULT
+%token T_DIVIDE
+
+%token T_TRUE
+%token T_FALSE
+%token <sval> T_IDENTIFIER
+%token <ival> T_INTEGER 
+
+%token T_SEMICOLON
+%token T_COMMA
+%token T_BAR
+%token T_LBRACE
+%token T_RBRACE
+%token T_RPAREN
+%token T_LPAREN
+%token T_LBRACKET
+%token T_RBRACKET
+%token T_ASSIGN
+
+%left T_OR
+%left T_AND
+%left T_EQ T_NE
+%left T_LT T_LE T_GT T_GE
+%left T_MINUS T_PLUS
+%left T_DIVIDE T_MULT
+%left T_NOT UMINUS
 
 %%
 
@@ -76,45 +75,45 @@
              to put the productions for the grammar for the
              language for this project here*/
 
-Program         :  {if(TESTING) printf("PARSER: Starting program\n");} Function Program2
+Program         : Function Program2
 
-Program2        :  {if(TESTING) printf("PARSER: Program2\n");} Function Program2
+Program2        : Function Program2
                 |
                 ;
 
-ReturnType      : BOOL
-                | INT
+ReturnType      : T_BOOL
+                | T_INT
                 ;
 
-ParameterList   : LPAREN RPAREN
-                | LPAREN Parameter AdditionalParam RPAREN
+ParameterList   : T_LPAREN T_RPAREN
+                | T_LPAREN Parameter AdditionalParam T_RPAREN
                 ;
 
-AdditionalParam : COMMA Parameter AdditionalParam
+AdditionalParam : T_COMMA Parameter AdditionalParam
                 |
                 ;
 
-Parameter       : ReturnType IDENTIFIER
+Parameter       : ReturnType T_IDENTIFIER
                 ;
 
-Function        : FUNCTION ReturnType IDENTIFIER ParameterList FunctionBody
+Function        : T_FUNCTION ReturnType T_IDENTIFIER ParameterList FunctionBody
                 ;
 
-FunctionBody    : LBRACE Declarations NestedFunctions Statements ReturnStatement RBRACE
+FunctionBody    : T_LBRACE Declarations NestedFunctions Statements ReturnStatement T_RBRACE
                 ;
 
 DeclTypes       : ReturnType
-                | INTARRAY LBRACKET INTEGER RBRACKET
+                | T_INTARRAY T_LBRACKET T_INTEGER T_RBRACKET
                 ;
 
 Declarations    : Declaration Declarations
                 |
                 ;
 
-Declaration     : VAR DeclTypes IDENTIFIER AddtlIdens SEMICOLON
+Declaration     : T_VAR DeclTypes T_IDENTIFIER AddtlIdens T_SEMICOLON
                 ;
 
-AddtlIdens      : COMMA IDENTIFIER AddtlIdens
+AddtlIdens      : T_COMMA T_IDENTIFIER AddtlIdens
                 |
                 ;
 
@@ -132,62 +131,62 @@ Statement       : Assignment
                 | WhileStatement
                 ;
 
-Idens           : IDENTIFIER
+Idens           : T_IDENTIFIER
                 | ArrayAccess
                 ;
 
-Assignment      : Idens ASSIGN Expr SEMICOLON
+Assignment      : Idens T_ASSIGN Expr T_SEMICOLON
                 ;
 
-FunctionCall    : Idens ASSIGN IDENTIFIER ParameterValues SEMICOLON
+FunctionCall    : Idens T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON
                 ;
 
-ParameterValues : LPAREN RPAREN
-                | LPAREN Expr AdditionalVals RPAREN
+ParameterValues : T_LPAREN T_RPAREN
+                | T_LPAREN Expr AdditionalVals T_RPAREN
                 ;
 
-AdditionalVals  : COMMA Expr AdditionalVals
+AdditionalVals  : T_COMMA Expr AdditionalVals
                 |
                 ;
 
-IfStatement     : IF LPAREN Expr RPAREN CodeBlock ElseStatement
+IfStatement     : T_IF T_LPAREN Expr T_RPAREN CodeBlock ElseStatement
                 ;
 
-ElseStatement   : ELSE CodeBlock
+ElseStatement   : T_ELSE CodeBlock
                 |
                 ;
 
-WhileStatement  : WHILE LPAREN Expr RPAREN CodeBlock
+WhileStatement  : T_WHILE T_LPAREN Expr T_RPAREN CodeBlock
                 ;
 
-ReturnStatement : RETURN Expr SEMICOLON
+ReturnStatement : T_RETURN Expr T_SEMICOLON
                 ;
 
-CodeBlock       : LBRACE Statements RBRACE
+CodeBlock       : T_LBRACE Statements T_RBRACE
                 ;
 
-ArrayAccess     : IDENTIFIER LBRACKET INTEGER RBRACKET
+ArrayAccess     : T_IDENTIFIER T_LBRACKET T_INTEGER T_RBRACKET
                 ;
 
 /* Starting Expression Section */
-Expr            : LPAREN Expr RPAREN
-                | Expr AND Expr
-                | Expr OR Expr
-                | Expr LT Expr
-                | Expr GT Expr
-                | Expr LE Expr
-                | Expr GE Expr
-                | Expr EQ Expr
-                | Expr NE Expr
-                | TRUE
-                | FALSE
-                | NOT Expr
-                | Expr PLUS Expr
-                | Expr MINUS Expr
-                | Expr MULT Expr
-                | Expr DIVIDE Expr
-                | MINUS Expr
-                | INTEGER
+Expr            : T_LPAREN Expr T_RPAREN
+                | Expr T_AND Expr
+                | Expr T_OR Expr
+                | Expr T_LT Expr
+                | Expr T_GT Expr
+                | Expr T_LE Expr
+                | Expr T_GE Expr
+                | Expr T_EQ Expr
+                | Expr T_NE Expr
+                | T_TRUE
+                | T_FALSE
+                | T_NOT Expr
+                | Expr T_PLUS Expr
+                | Expr T_MINUS Expr
+                | Expr T_MULT Expr
+                | Expr T_DIVIDE Expr
+                | T_MINUS Expr %prec UMINUS
+                | T_INTEGER
                 | Idens
                 ;
 
