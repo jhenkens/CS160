@@ -1,0 +1,7 @@
+function int Main() {
+    if(true){
+            
+    } else{
+        return 0;
+    }
+}

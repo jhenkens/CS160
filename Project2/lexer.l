@@ -69,7 +69,7 @@ false               { if(TESTING) printf("scanned a FALSE: %s\n",yytext);  retur
 \=                  { if(TESTING) printf("scanned a ASSIGN: %s\n",yytext);  return T_ASSIGN;}
 [a-zA-Z][a-zA-Z0-9]*  {yylval.sval = yytext; printf("scanned an identifier %s\n",yytext); return T_IDENTIFIER;}
 [0-1]+b             { yylval.ival = strtol(yytext,NULL,2); if(TESTING) printf("scanned binary value %s as %d\n", yytext, yylval.ival); return T_INTEGER;}
-(0x|0X)[0-9A-F]+    { yylval.ival = strtol(yytext,NULL,16); if(TESTING) printf("scanned hex value %s as %d\n", yytext, yylval.ival); return T_INTEGER;}
+(0x|0X)[0-9A-Fa-f]*    { yylval.ival = strtol(yytext,NULL,16); if(TESTING) printf("scanned hex value %s as %d\n", yytext, yylval.ival); return T_INTEGER;}
 [1-9][0-9]*  { yylval.ival = strtol(yytext,NULL,10); if(TESTING) printf("scanned decimal value %s as %d\n", yytext, yylval.ival); return T_INTEGER;}
 0[0-7]*             { yylval.ival = strtol(yytext,NULL,8); if(TESTING) printf("scanned octal value %s as %d\n", yytext, yylval.ival); return T_INTEGER;}
 [ \t\n]               ; /* skip whitespace */

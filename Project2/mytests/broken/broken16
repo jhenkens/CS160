@@ -1,4 +1,5 @@
 function int Main() {
-		function int foo3() { return foo(); }
+    if(true){
             return 0;
+    }
 }
