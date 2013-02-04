@@ -1,5 +1,0 @@
-function int Main() {
-		function int foo3() { return True;  }
-
-            return 0;
-}
