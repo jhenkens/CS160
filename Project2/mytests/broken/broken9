@@ -1,0 +1,5 @@
+function int Main() {
+
+		function int foo3() { return foo(); }
+            return 0;
+}

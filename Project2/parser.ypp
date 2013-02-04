@@ -67,7 +67,7 @@
 %left T_LT T_LE T_GT T_GE
 %left T_MINUS T_PLUS
 %left T_DIVIDE T_MULT
-%left T_NOT UMINUS
+%right T_NOT UMINUS
 
 %%
 
@@ -75,9 +75,7 @@
              to put the productions for the grammar for the
              language for this project here*/
 
-Program         : Function Program2
-
-Program2        : Function Program2
+Program         : Function Program
                 |
                 ;
 
@@ -165,11 +163,12 @@ ReturnStatement : T_RETURN Expr T_SEMICOLON
 CodeBlock       : T_LBRACE Statements T_RBRACE
                 ;
 
-ArrayAccess     : T_IDENTIFIER T_LBRACKET T_INTEGER T_RBRACKET
+ArrayAccess     : T_IDENTIFIER T_LBRACKET Expr T_RBRACKET
                 ;
 
 /* Starting Expression Section */
 Expr            : T_LPAREN Expr T_RPAREN
+                | T_BAR Expr T_BAR
                 | Expr T_AND Expr
                 | Expr T_OR Expr
                 | Expr T_LT Expr

@@ -1,0 +1,15 @@
+function int foo(int i, int j, int k)
+{
+    function bool fee(int l, bool m, int n)
+    {
+        return true;
+    }
+    return 0;
+}
+
+		function int foo() { return 0; }
+		function int foo2() { return 0; }
+		function int f234() { return 0; }
+		function int 25() { return 0; }
+
+        
