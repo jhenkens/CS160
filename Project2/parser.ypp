@@ -42,7 +42,7 @@
 %token T_NOT
 %token T_PLUS
 %token T_MINUS
-%token T_ULT
+%token T_MULT
 %token T_DIVIDE
 
 %token T_TRUE

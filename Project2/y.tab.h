@@ -39,94 +39,96 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     BOOL = 258,
-     ELSE = 259,
-     IF = 260,
-     INT = 261,
-     WHILE = 262,
-     VAR = 263,
-     FUNCTION = 264,
-     INTARRAY = 265,
-     RETURN = 266,
-     EQ = 267,
-     GT = 268,
-     GE = 269,
-     LT = 270,
-     LE = 271,
-     NE = 272,
-     AND = 273,
-     OR = 274,
-     NOT = 275,
-     PLUS = 276,
-     MINUS = 277,
-     MULT = 278,
-     DIVIDE = 279,
-     TRUE = 280,
-     FALSE = 281,
-     IDENTIFIER = 282,
-     INTEGER = 283,
-     SEMICOLON = 284,
-     COMMA = 285,
-     BAR = 286,
-     LBRACE = 287,
-     RBRACE = 288,
-     RPAREN = 289,
-     LPAREN = 290,
-     LBRACKET = 291,
-     RBRACKET = 292,
-     ASSIGN = 293
+     T_BOOL = 258,
+     T_ELSE = 259,
+     T_IF = 260,
+     T_INT = 261,
+     T_WHILE = 262,
+     T_VAR = 263,
+     T_FUNCTION = 264,
+     T_INTARRAY = 265,
+     T_RETURN = 266,
+     T_EQ = 267,
+     T_GT = 268,
+     T_GE = 269,
+     T_LT = 270,
+     T_LE = 271,
+     T_NE = 272,
+     T_AND = 273,
+     T_OR = 274,
+     T_NOT = 275,
+     T_PLUS = 276,
+     T_MINUS = 277,
+     T_MULT = 278,
+     T_DIVIDE = 279,
+     T_TRUE = 280,
+     T_FALSE = 281,
+     T_IDENTIFIER = 282,
+     T_INTEGER = 283,
+     T_SEMICOLON = 284,
+     T_COMMA = 285,
+     T_BAR = 286,
+     T_LBRACE = 287,
+     T_RBRACE = 288,
+     T_RPAREN = 289,
+     T_LPAREN = 290,
+     T_LBRACKET = 291,
+     T_RBRACKET = 292,
+     T_ASSIGN = 293,
+     UMINUS = 294
    };
 #endif
 /* Tokens.  */
-#define BOOL 258
-#define ELSE 259
-#define IF 260
-#define INT 261
-#define WHILE 262
-#define VAR 263
-#define FUNCTION 264
-#define INTARRAY 265
-#define RETURN 266
-#define EQ 267
-#define GT 268
-#define GE 269
-#define LT 270
-#define LE 271
-#define NE 272
-#define AND 273
-#define OR 274
-#define NOT 275
-#define PLUS 276
-#define MINUS 277
-#define MULT 278
-#define DIVIDE 279
-#define TRUE 280
-#define FALSE 281
-#define IDENTIFIER 282
-#define INTEGER 283
-#define SEMICOLON 284
-#define COMMA 285
-#define BAR 286
-#define LBRACE 287
-#define RBRACE 288
-#define RPAREN 289
-#define LPAREN 290
-#define LBRACKET 291
-#define RBRACKET 292
-#define ASSIGN 293
+#define T_BOOL 258
+#define T_ELSE 259
+#define T_IF 260
+#define T_INT 261
+#define T_WHILE 262
+#define T_VAR 263
+#define T_FUNCTION 264
+#define T_INTARRAY 265
+#define T_RETURN 266
+#define T_EQ 267
+#define T_GT 268
+#define T_GE 269
+#define T_LT 270
+#define T_LE 271
+#define T_NE 272
+#define T_AND 273
+#define T_OR 274
+#define T_NOT 275
+#define T_PLUS 276
+#define T_MINUS 277
+#define T_MULT 278
+#define T_DIVIDE 279
+#define T_TRUE 280
+#define T_FALSE 281
+#define T_IDENTIFIER 282
+#define T_INTEGER 283
+#define T_SEMICOLON 284
+#define T_COMMA 285
+#define T_BAR 286
+#define T_LBRACE 287
+#define T_RBRACE 288
+#define T_RPAREN 289
+#define T_LPAREN 290
+#define T_LBRACKET 291
+#define T_RBRACKET 292
+#define T_ASSIGN 293
+#define UMINUS 294
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 58 "parser.ypp"
+#line 19 "parser.ypp"
 {
     int ival;
     char *sval;
 }
 /* Line 1529 of yacc.c.  */
-#line 130 "y.tab.h"
+#line 132 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
