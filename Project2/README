@@ -1,11 +1,13 @@
-Lexeme names:
-b - bool
-e - else
-c - if
-w - while
-v - var
-f - function
-r - return
+Johan Henkens - 4352662
+jhenkens@umail.ucsb.edu
+johan@henkens.com
 
-d - decimal
+I implemented the project correctly to the best of my knowledge.
+
+I started by implementing the lexer, and getting familar with adding tokens to the language with yacc -d option (generating the y.tab.h file).
+One the lexer was mostly completed, I began working on the grammer.
+I first implemented the grammar as best as I could to my knowledge without any thought of precendence.
+I later added precendence using the %prec settings in YACC, and this fixed all shift/reduce and reduce/reduce errors that I had.
+I then tested my parser as best I could using the series of test files I created in mytest. My main problems were with developing a proper regex to handle comments, which I eventually figured out. The reasons I had difficulty was due to bisons lack of handling the ? regex operator, which broke the first four or five regexes that I had made for the comment handling.
+Although a separate rule was not necessarily needed to handle broken comments, as [ followed immediately by a $ is never legal sytax (the $ wont match a rule in the parser), I added a specific rule to handle unclosed comments to print nicely. 
 
