@@ -2,7 +2,6 @@
 xcuserdata
 *.o
 *.svg
-*/y.tab.h
 */y.tab.c
 *.out
 */lex.yy.c
