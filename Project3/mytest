@@ -1,0 +1,68 @@
+function bool array(int ax)
+{
+  var intarray[12] a;
+  var intarray[12] b;
+  var int x;
+  var int z;
+
+  a[2+3] = b[0];
+	
+  a[0] = x*7 + b[1];
+
+  z = array(ax);
+
+  return false;
+}
+
+function int Main()
+{
+    var int x;
+    var int k, j;
+    var bool t;
+
+    x = 5;
+    if (x < 3) {
+        x = 7;
+    }
+    if (x <3) {
+        x = 9;
+    }
+    else {
+        if (t == true) {
+            x = 12;
+        }
+    }
+   
+    return 0;
+}
+
+function int f(int ax)
+{
+    var bool d;
+
+    function bool nested()
+    {
+        var int i, a;
+	return j-a == 12;
+    }
+
+    return -(---k+j*k/x);
+}
+
+function bool main(int a)
+{
+    var int i;
+
+    function bool tain(int integer)
+    {
+        return false || true;
+    }
+    return (2+2*4) < 3;
+}
+
+function bool  main1(int ax)
+{
+    var int i;
+    return (2+2*4) < 3;
+}
+

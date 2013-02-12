@@ -1,16 +1,16 @@
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-    	#include "ast.hpp"
-    	#include "primitive.hpp"
-    	#include "symtab.hpp"
+#include "ast.hpp"
+#include "primitive.hpp"
+#include "symtab.hpp"
 
-	#define YYDEBUG 1
+#define YYDEBUG 1
 
-    	extern Program_ptr ast;
-	int yylex(void);
-	void yyerror(const char *);
+extern Program_ptr ast;
+int yylex(void);
+void yyerror(const char *);
 %}
 
 /* Enables verbose error messages */
@@ -69,52 +69,57 @@
 
 %%
 
-Program         : Function Program
-                |
+Program         : Function Program {
+                    $$.u_func_list = $2.u_func_list;
+                    $$.u_func_list->push_front($1.u_func);
+                    ast = new Program($$.u_func_list);}
+                | { $$.u_func_list = new list<Func_ptr>();
+                    ast = new Program($$.u_func_list);}
                 ;
 
-ReturnType      : T_BOOL
-                | T_INT
+ReturnType      : T_BOOL {$$.u_type = new TBool();}
+                | T_INT {$$.u_type = new TInt();}
                 ;
 
-ParameterList   : T_LPAREN T_RPAREN
-                | T_LPAREN Parameter AdditionalParam T_RPAREN
+ParameterList   : T_LPAREN T_RPAREN {$$.u_param_list = new list<Param_ptr>();}
+                | T_LPAREN Parameter AdditionalParam T_RPAREN {$$.u_param_list = $3.u_param_list; $$.u_param_list->push_front($2.u_param);};
                 ;
 
-AdditionalParam : T_COMMA Parameter AdditionalParam
-                |
+AdditionalParam : T_COMMA Parameter AdditionalParam {$$.u_param_list = $3.u_param_list; $$.u_param_list->push_front($2.u_param);}
+                | {$$.u_param_list = new list<Param_ptr>();}
                 ;
 
-Parameter       : ReturnType T_IDENTIFIER
+Parameter       : ReturnType T_IDENTIFIER {$$.u_param = new Param( $1.u_type, new SymName($2.u_base_charptr));}
                 ;
 
-Function        : T_FUNCTION ReturnType T_IDENTIFIER ParameterList FunctionBody
+Function        : T_FUNCTION ReturnType T_IDENTIFIER ParameterList FunctionBody { $$.u_func = new Func($2.u_type, new SymName($3.u_base_charptr), $4.u_param_list, $5.u_function_block);}
                 ;
 
-FunctionBody    : T_LBRACE Declarations NestedFunctions Statements ReturnStatement T_RBRACE
+FunctionBody    : T_LBRACE Declarations NestedFunctions Statements ReturnStatement T_RBRACE { $$.u_function_block = new Function_block(
+                                            $2.u_decl_list,$3.u_func_list,$4.u_stat_list, $5.u_return);}
                 ;
 
 DeclTypes       : ReturnType
-                | T_INTARRAY T_LBRACKET T_INTEGER T_RBRACKET
+                | T_INTARRAY T_LBRACKET T_INTEGER T_RBRACKET {$$.u_type = new TIntArray(new Primitive($3.u_base_int));}
                 ;
 
-Declarations    : Declaration Declarations
-                |
+Declarations    : Declaration Declarations { $$.u_decl_list = $2.u_decl_list; $$.u_decl_list->push_front($1.u_decl);}
+                | {$$.u_decl_list = new list<Decl_ptr>();}
                 ;
 
-Declaration     : T_VAR DeclTypes T_IDENTIFIER AddtlIdens T_SEMICOLON
+Declaration     : T_VAR DeclTypes T_IDENTIFIER AddtlIdens T_SEMICOLON { $4.u_symname_list->push_front(new SymName($3.u_base_charptr)); $$.u_decl = new Decl($2.u_type, $4.u_symname_list);}
                 ;
 
-AddtlIdens      : T_COMMA T_IDENTIFIER AddtlIdens
-                |
+AddtlIdens      : T_COMMA T_IDENTIFIER AddtlIdens {$$.u_symname_list = $3.u_symname_list; $$.u_symname_list->push_front(new SymName($2.u_base_charptr));}
+                | {$$.u_symname_list = new list<SymName_ptr>();}
                 ;
 
-NestedFunctions : Function NestedFunctions
-                |
+NestedFunctions : Function NestedFunctions { $$.u_func_list = $2.u_func_list; $$.u_func_list->push_front($1.u_func);}
+                | {$$.u_func_list = new list<Func_ptr>();}
                 ;
 
-Statements      : Statement Statements
-                |
+Statements      : Statement Statements {$$.u_stat_list = $2.u_stat_list; $$.u_stat_list->push_front($1.u_stat);}
+                | {$$.u_stat_list = new list<Stat_ptr>();}
                 ;
 
 Statement       : Assignment
@@ -123,64 +128,68 @@ Statement       : Assignment
                 | WhileStatement
                 ;
 
-Idens           : T_IDENTIFIER
-                | ArrayAccess
+Assignment      : T_IDENTIFIER T_ASSIGN Expr T_SEMICOLON {$$.u_stat = new Assignment(new SymName($1.u_base_charptr),$3.u_expr);}
+                | ArrayAccess  T_ASSIGN Expr T_SEMICOLON {$$.u_stat = new ArrayAssignment($1.u_symname, $1.u_expr, $3.u_expr);}
                 ;
 
-Assignment      : Idens T_ASSIGN Expr T_SEMICOLON
+FunctionCall    : T_IDENTIFIER T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON { $$.u_stat = new Call(new SymName($1.u_base_charptr),new SymName($3.u_base_charptr),$4.u_expr_list);}
+                | ArrayAccess T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON { $$.u_stat = new ArrayCall($1.u_symname,$1.u_expr,new SymName($3.u_base_charptr),$4.u_expr_list);}
                 ;
 
-FunctionCall    : Idens T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON
+ParameterValues : T_LPAREN T_RPAREN {$$.u_expr_list = new list<Expr_ptr>();}
+                | T_LPAREN Expr AdditionalVals T_RPAREN {$$.u_expr_list = $3.u_expr_list; $$.u_expr_list->push_front($2.u_expr);}
                 ;
 
-ParameterValues : T_LPAREN T_RPAREN
-                | T_LPAREN Expr AdditionalVals T_RPAREN
+AdditionalVals  : T_COMMA Expr AdditionalVals {$$.u_expr_list = $3.u_expr_list; $$.u_expr_list->push_front($2.u_expr);}
+                | {$$.u_expr_list = new list<Expr_ptr>();}
                 ;
 
-AdditionalVals  : T_COMMA Expr AdditionalVals
-                |
+IfStatement     : T_IF T_LPAREN Expr T_RPAREN CodeBlock ElseStatement {
+                                if($6.u_nested_block==NULL){
+                                    $$.u_stat = new IfNoElse($3.u_expr, $5.u_nested_block);
+                                } else{
+                                    $$.u_stat = new IfWithElse($3.u_expr, $5.u_nested_block, $6.u_nested_block);
+                                }}
                 ;
 
-IfStatement     : T_IF T_LPAREN Expr T_RPAREN CodeBlock ElseStatement
+ElseStatement   : T_ELSE CodeBlock {$$.u_nested_block = $2.u_nested_block;}
+                | {$$.u_nested_block = NULL;}
                 ;
 
-ElseStatement   : T_ELSE CodeBlock
-                |
+WhileStatement  : T_WHILE T_LPAREN Expr T_RPAREN CodeBlock {$$.u_stat = new WhileLoop($3.u_expr,$5.u_nested_block);}
                 ;
 
-WhileStatement  : T_WHILE T_LPAREN Expr T_RPAREN CodeBlock
+ReturnStatement : T_RETURN Expr T_SEMICOLON { $$.u_return = new Return($2.u_expr);}
                 ;
 
-ReturnStatement : T_RETURN Expr T_SEMICOLON
+CodeBlock       : T_LBRACE Statements T_RBRACE {$$.u_nested_block = new Nested_block($2.u_stat_list);}
                 ;
 
-CodeBlock       : T_LBRACE Statements T_RBRACE
-                ;
-
-ArrayAccess     : T_IDENTIFIER T_LBRACKET Expr T_RBRACKET
+ArrayAccess     : T_IDENTIFIER T_LBRACKET Expr T_RBRACKET {$$.u_symname = new SymName($1.u_base_charptr); $$.u_expr = $3.u_expr;}
                 ;
 
 /* Starting Expression Section */
-Expr            : T_LPAREN Expr T_RPAREN
-                | T_BAR Expr T_BAR
-                | Expr T_AND Expr
-                | Expr T_OR Expr
-                | Expr T_LT Expr
-                | Expr T_GT Expr
-                | Expr T_LE Expr
-                | Expr T_GE Expr
-                | Expr T_EQ Expr
-                | Expr T_NE Expr
-                | T_TRUE
-                | T_FALSE
-                | T_NOT Expr
-                | Expr T_PLUS Expr
-                | Expr T_MINUS Expr
-                | Expr T_MULT Expr
-                | Expr T_DIVIDE Expr
-                | T_MINUS Expr %prec UMINUS
-                | T_INTEGER
-                | Idens
+Expr            : T_LPAREN Expr T_RPAREN {$$.u_expr = $2.u_expr;}
+                | T_BAR Expr T_BAR {$$.u_expr = new Magnitude($2.u_expr);}
+                | Expr T_AND Expr {$$.u_expr = new And($1.u_expr,$3.u_expr);}
+                | Expr T_OR Expr {$$.u_expr = new Or($1.u_expr,$3.u_expr);}
+                | Expr T_LT Expr {$$.u_expr = new Lt($1.u_expr,$3.u_expr);}
+                | Expr T_GT Expr {$$.u_expr = new Gt($1.u_expr,$3.u_expr);}
+                | Expr T_LE Expr {$$.u_expr = new Lteq($1.u_expr,$3.u_expr);}
+                | Expr T_GE Expr {$$.u_expr = new Gteq($1.u_expr,$3.u_expr);}
+                | Expr T_EQ Expr {$$.u_expr = new Compare($1.u_expr,$3.u_expr);}
+                | Expr T_NE Expr {$$.u_expr = new Noteq($1.u_expr,$3.u_expr);}
+                | T_TRUE {$$.u_expr = new BoolLit(new Primitive($1.u_base_int));}
+                | T_FALSE {$$.u_expr = new BoolLit(new Primitive($1.u_base_int));}
+                | T_NOT Expr {$$.u_expr = new Not($2.u_expr);}
+                | Expr T_PLUS Expr  {$$.u_expr = new Plus($1.u_expr,$3.u_expr);}
+                | Expr T_MINUS Expr  {$$.u_expr = new Minus($1.u_expr,$3.u_expr);}
+                | Expr T_MULT Expr  {$$.u_expr = new Times($1.u_expr,$3.u_expr);}
+                | Expr T_DIVIDE Expr  {$$.u_expr = new Div($1.u_expr,$3.u_expr);}
+                | T_MINUS Expr %prec UMINUS  {$$.u_expr = new Uminus($2.u_expr);}
+                | T_INTEGER {$$.u_expr = new IntLit ( new Primitive ( $1.u_base_int));}
+                | T_IDENTIFIER {$$.u_expr = new Ident ( new SymName($1.u_base_charptr));}
+                | ArrayAccess {$$.u_expr = new ArrayAccess ( $1.u_symname,$1.u_expr);}
                 ;
 
 

@@ -40,8 +40,8 @@ return              { if(TESTING) printf("scanned a RETURN: %s\n",yytext);  retu
 -                   { if(TESTING) printf("scanned a MINUS: %s\n",yytext);  return T_MINUS;}
 \*                  { if(TESTING) printf("scanned a MULT: %s\n",yytext);  return T_MULT;}
 \/                  { if(TESTING) printf("scanned a DIVIDE: %s\n",yytext);  return T_DIVIDE;}
-true                { if(TESTING) printf("scanned a TRUE: %s\n",yytext);  return T_TRUE;}
-false               { if(TESTING) printf("scanned a FALSE: %s\n",yytext);  return T_FALSE;}
+true                { if(TESTING) printf("scanned a TRUE: %s\n",yytext);  yylval.u_base_int = 1; return T_TRUE;}
+false               { if(TESTING) printf("scanned a FALSE: %s\n",yytext); yylval.u_base_int = 0; return T_FALSE;}
 \;                  { if(TESTING) printf("scanned a SEMICOLON: %s\n",yytext);  return T_SEMICOLON;}
 \,                  { if(TESTING) printf("scanned a COMMA: %s\n",yytext);  return T_COMMA;}
 \|                  { if(TESTING) printf("scanned a BAR: %s\n",yytext);  return T_BAR;}
@@ -52,7 +52,7 @@ false               { if(TESTING) printf("scanned a FALSE: %s\n",yytext);  retur
 \[                  { if(TESTING) printf("scanned a LBRACKET: %s\n",yytext);  return T_LBRACKET;}
 \]                  { if(TESTING) printf("scanned a RBRACKET: %s\n",yytext);  return T_RBRACKET;}
 \=                  { if(TESTING) printf("scanned a ASSIGN: %s\n",yytext);  return T_ASSIGN;}
-[a-zA-Z][a-zA-Z0-9]*  {yylval.u_base_charptr = yytext; if(TESTING) printf("scanned an identifier %s\n",yytext); return T_IDENTIFIER;}
+[a-zA-Z][a-zA-Z0-9]*  {yylval.u_base_charptr = strdup(yytext); if(TESTING) printf("scanned an identifier %s\n",yytext); return T_IDENTIFIER;}
 [0-1]+b             { yylval.u_base_int = strtol(yytext,NULL,2); if(TESTING) printf("scanned binary value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
 (0x|0X)[0-9A-Fa-f]*    { yylval.u_base_int = strtol(yytext,NULL,16); if(TESTING) printf("scanned hex value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
 [1-9][0-9]*  { yylval.u_base_int = strtol(yytext,NULL,10); if(TESTING) printf("scanned decimal value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
