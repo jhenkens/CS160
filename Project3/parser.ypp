@@ -1,0 +1,35 @@
+%{
+	#include <stdio.h>
+	#include <stdlib.h>
+
+    	#include "ast.hpp"
+    	#include "primitive.hpp"
+    	#include "symtab.hpp"
+
+	#define YYDEBUG 1
+
+    	extern Program_ptr ast;
+	int yylex(void);
+	void yyerror(const char *);
+%}
+
+/* Enables verbose error messages */
+%error-verbose
+
+
+/* Insert your grammar into below section. Please don't just overwrite the file because of the enhanced header section. */
+
+%%
+
+insertyourgrammarhere   :
+			;
+
+%%
+
+extern int yylineno;
+
+void yyerror(const char *s) {
+	fprintf(stderr, "%s at line %d\n", s, yylineno);
+	exit(1);
+	return;
+}
