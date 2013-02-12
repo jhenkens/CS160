@@ -19,10 +19,170 @@
 
 /* Insert your grammar into below section. Please don't just overwrite the file because of the enhanced header section. */
 
+%token T_BOOL
+%token T_ELSE
+%token T_IF
+%token T_INT
+%token T_WHILE
+%token T_VAR
+%token T_FUNCTION
+%token T_INTARRAY
+%token T_RETURN
+
+%token T_EQ
+%token T_GT
+%token T_GE
+%token T_LT
+%token T_LE
+%token T_NE
+%token T_AND
+%token T_OR
+%token T_NOT
+%token T_PLUS
+%token T_MINUS
+%token T_MULT
+%token T_DIVIDE
+
+%token T_TRUE
+%token T_FALSE
+%token T_IDENTIFIER
+%token T_INTEGER 
+
+%token T_SEMICOLON
+%token T_COMMA
+%token T_BAR
+%token T_LBRACE
+%token T_RBRACE
+%token T_RPAREN
+%token T_LPAREN
+%token T_LBRACKET
+%token T_RBRACKET
+%token T_ASSIGN
+
+%left T_OR
+%left T_AND
+%left T_EQ T_NE
+%left T_LT T_LE T_GT T_GE
+%left T_MINUS T_PLUS
+%left T_DIVIDE T_MULT
+%right T_NOT UMINUS
+
 %%
 
-insertyourgrammarhere   :
-			;
+Program         : Function Program
+                |
+                ;
+
+ReturnType      : T_BOOL
+                | T_INT
+                ;
+
+ParameterList   : T_LPAREN T_RPAREN
+                | T_LPAREN Parameter AdditionalParam T_RPAREN
+                ;
+
+AdditionalParam : T_COMMA Parameter AdditionalParam
+                |
+                ;
+
+Parameter       : ReturnType T_IDENTIFIER
+                ;
+
+Function        : T_FUNCTION ReturnType T_IDENTIFIER ParameterList FunctionBody
+                ;
+
+FunctionBody    : T_LBRACE Declarations NestedFunctions Statements ReturnStatement T_RBRACE
+                ;
+
+DeclTypes       : ReturnType
+                | T_INTARRAY T_LBRACKET T_INTEGER T_RBRACKET
+                ;
+
+Declarations    : Declaration Declarations
+                |
+                ;
+
+Declaration     : T_VAR DeclTypes T_IDENTIFIER AddtlIdens T_SEMICOLON
+                ;
+
+AddtlIdens      : T_COMMA T_IDENTIFIER AddtlIdens
+                |
+                ;
+
+NestedFunctions : Function NestedFunctions
+                |
+                ;
+
+Statements      : Statement Statements
+                |
+                ;
+
+Statement       : Assignment
+                | FunctionCall
+                | IfStatement
+                | WhileStatement
+                ;
+
+Idens           : T_IDENTIFIER
+                | ArrayAccess
+                ;
+
+Assignment      : Idens T_ASSIGN Expr T_SEMICOLON
+                ;
+
+FunctionCall    : Idens T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON
+                ;
+
+ParameterValues : T_LPAREN T_RPAREN
+                | T_LPAREN Expr AdditionalVals T_RPAREN
+                ;
+
+AdditionalVals  : T_COMMA Expr AdditionalVals
+                |
+                ;
+
+IfStatement     : T_IF T_LPAREN Expr T_RPAREN CodeBlock ElseStatement
+                ;
+
+ElseStatement   : T_ELSE CodeBlock
+                |
+                ;
+
+WhileStatement  : T_WHILE T_LPAREN Expr T_RPAREN CodeBlock
+                ;
+
+ReturnStatement : T_RETURN Expr T_SEMICOLON
+                ;
+
+CodeBlock       : T_LBRACE Statements T_RBRACE
+                ;
+
+ArrayAccess     : T_IDENTIFIER T_LBRACKET Expr T_RBRACKET
+                ;
+
+/* Starting Expression Section */
+Expr            : T_LPAREN Expr T_RPAREN
+                | T_BAR Expr T_BAR
+                | Expr T_AND Expr
+                | Expr T_OR Expr
+                | Expr T_LT Expr
+                | Expr T_GT Expr
+                | Expr T_LE Expr
+                | Expr T_GE Expr
+                | Expr T_EQ Expr
+                | Expr T_NE Expr
+                | T_TRUE
+                | T_FALSE
+                | T_NOT Expr
+                | Expr T_PLUS Expr
+                | Expr T_MINUS Expr
+                | Expr T_MULT Expr
+                | Expr T_DIVIDE Expr
+                | T_MINUS Expr %prec UMINUS
+                | T_INTEGER
+                | Idens
+                ;
+
 
 %%
 
