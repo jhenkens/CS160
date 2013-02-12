@@ -129,11 +129,11 @@ Statement       : Assignment
                 ;
 
 Assignment      : T_IDENTIFIER T_ASSIGN Expr T_SEMICOLON {$$.u_stat = new Assignment(new SymName($1.u_base_charptr),$3.u_expr);}
-                | ArrayAccess  T_ASSIGN Expr T_SEMICOLON {$$.u_stat = new ArrayAssignment($1.u_symname, $1.u_expr, $3.u_expr);}
+                | T_IDENTIFIER T_LBRACKET Expr T_RBRACKET T_ASSIGN Expr T_SEMICOLON {$$.u_stat = new ArrayAssignment(new SymName($1.u_base_charptr), $3.u_expr, $6.u_expr);}
                 ;
 
 FunctionCall    : T_IDENTIFIER T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON { $$.u_stat = new Call(new SymName($1.u_base_charptr),new SymName($3.u_base_charptr),$4.u_expr_list);}
-                | ArrayAccess T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON { $$.u_stat = new ArrayCall($1.u_symname,$1.u_expr,new SymName($3.u_base_charptr),$4.u_expr_list);}
+                | T_IDENTIFIER T_LBRACKET Expr T_RBRACKET T_ASSIGN T_IDENTIFIER ParameterValues T_SEMICOLON { $$.u_stat = new ArrayCall(new SymName($1.u_base_charptr),$3.u_expr,new SymName($6.u_base_charptr),$7.u_expr_list);}
                 ;
 
 ParameterValues : T_LPAREN T_RPAREN {$$.u_expr_list = new list<Expr_ptr>();}
@@ -165,8 +165,6 @@ ReturnStatement : T_RETURN Expr T_SEMICOLON { $$.u_return = new Return($2.u_expr
 CodeBlock       : T_LBRACE Statements T_RBRACE {$$.u_nested_block = new Nested_block($2.u_stat_list);}
                 ;
 
-ArrayAccess     : T_IDENTIFIER T_LBRACKET Expr T_RBRACKET {$$.u_symname = new SymName($1.u_base_charptr); $$.u_expr = $3.u_expr;}
-                ;
 
 /* Starting Expression Section */
 Expr            : T_LPAREN Expr T_RPAREN {$$.u_expr = $2.u_expr;}
@@ -188,8 +186,8 @@ Expr            : T_LPAREN Expr T_RPAREN {$$.u_expr = $2.u_expr;}
                 | Expr T_DIVIDE Expr  {$$.u_expr = new Div($1.u_expr,$3.u_expr);}
                 | T_MINUS Expr %prec UMINUS  {$$.u_expr = new Uminus($2.u_expr);}
                 | T_INTEGER {$$.u_expr = new IntLit ( new Primitive ( $1.u_base_int));}
+                | T_IDENTIFIER T_LBRACKET Expr T_RBRACKET {$$.u_expr = new ArrayAccess(new SymName($1.u_base_charptr),$3.u_expr);}
                 | T_IDENTIFIER {$$.u_expr = new Ident ( new SymName($1.u_base_charptr));}
-                | ArrayAccess {$$.u_expr = new ArrayAccess ( $1.u_symname,$1.u_expr);}
                 ;
 
 
