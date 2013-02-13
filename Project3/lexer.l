@@ -16,7 +16,7 @@ void yyerror(const char *);
 %%
 
 
-\[\$([^\$]|\$[^\]])*\$\] { if(TESTING) printf("removed a comment\n"); }
+\[\$([^\$]|\$[^\]])*\$+\] { if(TESTING) printf("removed a comment\n"); }
 \[\$                yyerror((char *) "unclosed comment");
 bool                { if(TESTING) printf("scanned a BOOL: %s\n",yytext);  return T_BOOL;}
 else                { if(TESTING) printf("scanned a ELSE: %s\n",yytext);  return T_ELSE;}
@@ -54,7 +54,7 @@ false               { if(TESTING) printf("scanned a FALSE: %s\n",yytext); yylval
 \=                  { if(TESTING) printf("scanned a ASSIGN: %s\n",yytext);  return T_ASSIGN;}
 [a-zA-Z][a-zA-Z0-9]*  {yylval.u_base_charptr = strdup(yytext); if(TESTING) printf("scanned an identifier %s\n",yytext); return T_IDENTIFIER;}
 [0-1]+b             { yylval.u_base_int = strtol(yytext,NULL,2); if(TESTING) printf("scanned binary value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
-(0x|0X)[0-9A-Fa-f]*    { yylval.u_base_int = strtol(yytext,NULL,16); if(TESTING) printf("scanned hex value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
+(0x|0X)[0-9A-F]*    { yylval.u_base_int = strtol(yytext,NULL,16); if(TESTING) printf("scanned hex value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
 [1-9][0-9]*  { yylval.u_base_int = strtol(yytext,NULL,10); if(TESTING) printf("scanned decimal value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
 0[0-7]*             { yylval.u_base_int = strtol(yytext,NULL,8); if(TESTING) printf("scanned octal value %s as %d\n", yytext, yylval.u_base_int); return T_INTEGER;}
 [ \t\n]               ; /* skip whitespace */
