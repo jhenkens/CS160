@@ -51,3 +51,8 @@ primitive.o: primitive.hpp primitive.cpp ast.hpp
 
 clean:
 	rm -f $(RMFILES)
+	rm -rf ast
+
+turnin: clean
+	mkdir ast
+	cp ast2dot.cpp astbuilder.gawk ast.cdef attribute.hpp constantfolding.hpp lexer.l main.cpp Makefile mytest parser.ypp primitive.cpp primitive.hpp README symtab.cpp symtab.hpp ast
