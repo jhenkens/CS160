@@ -1,0 +1,160 @@
+%{
+	#include <stdio.h>
+	#include <stdlib.h>
+
+    	#include "ast.hpp"
+    	#include "primitive.hpp"
+    	#include "symtab.hpp"
+
+	#define YYDEBUG 1
+
+    	extern Program_ptr ast;
+	int yylex(void);
+	void yyerror(const char *);
+	
+%}
+
+/* Enables verbose error messages */
+%error-verbose
+
+%token SEMI COMMA CURLY_O CURLY_C PAREN_O PAREN_C ANGLE_O ANGLE_C BAR
+%token KEY_BOOL KEY_ELSE KEY_IF KEY_INT KEY_WHILE KEY_VAR KEY_FUNC KEY_INTARRAY KEY_RET 
+%token INT OCT HEX BIN IDENT ILLEGAL TRUE FALSE
+
+%right ASSIGN 
+%left  OP_OR OP_AND OP_NE OP_EQ OP_GT OP_GE OP_LT OP_LE 
+%left  PLUS MINUS
+%left  MULT DIV
+%right  OP_NOT
+
+%%
+
+program    : functions  				{ast = new Program($1.u_func_list);} 
+           ;
+
+functions  : functions function 			{$1.u_func_list -> push_back($2.u_func); $$ = $1;}
+           |						{$$.u_func_list = new list<Func_ptr>();}
+           ;
+
+function   : KEY_FUNC type IDENT PAREN_O f_params PAREN_C CURLY_O body CURLY_C 
+               {$$.u_func = new Func($2.u_type, new SymName($3.u_base_charptr), $5.u_param_list, $8.u_function_block);}
+           ;
+
+body       : var_decls func_decls stmts ret_stmt  
+              {$$.u_function_block = new Function_block($1.u_decl_list, $2.u_func_list, $3.u_stat_list, $4.u_return);}
+           ;
+
+nest_block : stmts			{$$.u_nested_block = new Nested_block($1.u_stat_list);}
+	   ;
+
+f_params   : f_params_      { $$ = $1; }
+           |              { $$.u_param_list = new list<Param_ptr>(); }
+           ;
+
+f_params_  : f_params_ COMMA param   { $1.u_param_list -> push_back($3.u_param); $$ = $1; }
+           | param    { $$.u_param_list = new list<Param_ptr>(); $$.u_param_list -> push_back($1.u_param); }
+           ;
+
+param      : type IDENT     { $$.u_param = new Param($1.u_type, new SymName($2.u_base_charptr)); } 
+           ;
+
+var_decls  : var_decls var_decl				{$1.u_decl_list -> push_back($2.u_decl); $$ = $1;}
+           |						{$$.u_decl_list = new list<Decl_ptr>();}
+           ;
+
+var_decl   : KEY_VAR atype var_list SEMI      {$$.u_decl = new Decl($2.u_type, $3.u_symname_list);}
+           ;
+
+var_list   : var_list COMMA IDENT       {$1.u_symname_list -> push_back(new SymName($3.u_base_charptr)); $$ = $1;}
+           | IDENT                      {$$.u_symname_list = new list<SymName_ptr>(); $$.u_symname_list -> push_back(new SymName($1.u_base_charptr));}
+           ;
+
+type       : KEY_BOOL		{$$.u_type = new TBool();}
+           | KEY_INT		{$$.u_type = new TInt();}
+           ;
+
+atype      : type					{$$ = $1;}
+           | KEY_INTARRAY ANGLE_O integer ANGLE_C	{$$.u_type = new TIntArray($3.u_primitive);}
+           ;
+
+func_decls : func_decls function	{$1.u_func_list -> push_back($2.u_func); $$ = $1;}
+           |				{$$.u_func_list = new list<Func_ptr>();}
+           ;
+
+stmts      : stmts stmt			{$1.u_stat_list -> push_back($2.u_stat); $$ = $1;}
+           |				{$$.u_stat_list = new list<Stat_ptr>();}
+           ;
+
+stmt       : assignment							{$$ = $1;}
+           | fct_call							{$$ = $1;}
+           | KEY_IF PAREN_O expr PAREN_C CURLY_O nest_block CURLY_C		{$$.u_stat = new IfNoElse($3.u_expr, $6.u_nested_block);}
+           | KEY_IF PAREN_O expr PAREN_C CURLY_O nest_block CURLY_C KEY_ELSE CURLY_O nest_block CURLY_C		
+									{$$.u_stat = new IfWithElse($3.u_expr, $6.u_nested_block, $10.u_nested_block);}
+           | KEY_WHILE PAREN_O expr PAREN_C CURLY_O nest_block CURLY_C	{$$.u_stat = new WhileLoop($3.u_expr, $6.u_nested_block);}
+           ;
+
+ret_stmt   : KEY_RET expr SEMI	{$$.u_return = new Return($2.u_expr); }
+           ;
+
+assignment : IDENT ASSIGN expr SEMI				{$$.u_stat = new Assignment(new SymName($1.u_base_charptr), $3.u_expr);}
+	   | IDENT ANGLE_O expr ANGLE_C ASSIGN expr SEMI	{$$.u_stat = new ArrayAssignment(new SymName($1.u_base_charptr), $3.u_expr, $6.u_expr);}
+           ;
+
+fct_call   : IDENT ASSIGN IDENT PAREN_O expr_list PAREN_C SEMI		
+				{$$.u_stat = new Call(new SymName($1.u_base_charptr), new SymName($3.u_base_charptr), $5.u_expr_list);}
+	   | IDENT ANGLE_O expr ANGLE_C ASSIGN IDENT PAREN_O expr_list PAREN_C SEMI
+				{$$.u_stat = new ArrayCall(new SymName($1.u_base_charptr), $3.u_expr, new SymName($6.u_base_charptr), $8.u_expr_list);}
+           ;
+
+expr_list  : expr_list_	expr		{ $1.u_expr_list -> push_back($2.u_expr); $$ = $1; }
+	   |				{ $$.u_expr_list = new list<Expr_ptr>(); }
+	   ;
+
+expr_list_ : expr_list_ expr COMMA	{ $1.u_expr_list -> push_back($2.u_expr); $$ = $1; }
+	   | 				{ $$.u_expr_list = new list<Expr_ptr>(); }
+	   ;
+
+expr       : expr PLUS expr 	{$$.u_expr = new Plus($1.u_expr, $3.u_expr);}
+           | expr MINUS expr 	{$$.u_expr = new Minus($1.u_expr, $3.u_expr);}
+           | expr MULT expr 	{$$.u_expr = new Times($1.u_expr, $3.u_expr);}
+           | expr DIV expr 	{$$.u_expr = new Div($1.u_expr, $3.u_expr);}
+           | expr OP_AND expr	{$$.u_expr = new And($1.u_expr, $3.u_expr);}
+           | expr OP_OR expr	{$$.u_expr = new Or($1.u_expr, $3.u_expr);}
+           | expr OP_NE expr	{$$.u_expr = new Noteq($1.u_expr, $3.u_expr);}
+           | expr OP_EQ expr 	{$$.u_expr = new Compare($1.u_expr, $3.u_expr);}
+           | expr OP_GT expr	{$$.u_expr = new Gt($1.u_expr, $3.u_expr);}
+           | expr OP_GE expr	{$$.u_expr = new Gteq($1.u_expr, $3.u_expr);}
+           | expr OP_LT expr	{$$.u_expr = new Lt($1.u_expr, $3.u_expr);}
+           | expr OP_LE expr	{$$.u_expr = new Lteq($1.u_expr, $3.u_expr);}
+           | OP_NOT expr	{$$.u_expr = new Not($2.u_expr);}
+           | MINUS expr        	{$$.u_expr = new Uminus($2.u_expr);} %prec OP_NOT
+           | literal		{$$ = $1;}
+           | IDENT 		{$$.u_expr = new Ident(new SymName($1.u_base_charptr));}
+           | IDENT ANGLE_O expr ANGLE_C		{$$.u_expr = new ArrayAccess(new SymName($1.u_base_charptr), $3.u_expr);}
+           | PAREN_O expr PAREN_C		{$$ = $2;}
+           | BAR expr BAR	{ $$.u_expr = new Magnitude($2.u_expr); }
+           ;
+
+literal    : integer {$$.u_expr = new IntLit($1.u_primitive);}
+           | TRUE {$$.u_expr = new BoolLit(new Primitive(1));}
+           | FALSE {$$.u_expr = new BoolLit(new Primitive(0));}
+           ;
+
+integer    : INT {$$.u_primitive = new Primitive($1.u_base_int);}
+           | HEX {$$.u_primitive = new Primitive($1.u_base_int);}
+           | BIN {$$.u_primitive = new Primitive($1.u_base_int);}
+           | OCT {$$.u_primitive = new Primitive($1.u_base_int);}
+           ;
+
+%%
+
+
+
+extern int yylineno;
+
+void yyerror(const char *s) {
+	fprintf(stderr, "%s at line %d\n", s, yylineno);
+	exit(1);
+	return;
+}
+
