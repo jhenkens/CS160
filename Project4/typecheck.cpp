@@ -290,7 +290,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT left hand side var exists, and is an int/bool
-            Basetype l = get_ident_type(p->m_symname->spelling(), (bt_integer | bt_boolean),p->m_attribute);
+            Basetype l = get_ident_type(p->m_symname->spelling(), (bt_intarray | bt_integer | bt_boolean),p->m_attribute);
             // ASSERT right hand side matches that type
             Basetype r = p->m_expr->m_attribute.m_basetype;
             if ( l != r )
@@ -309,8 +309,10 @@ class Typecheck : public Visitor {
                 t_error(array_index_error,p->m_attribute);
             // ASSERT right hand side is an integer
             Basetype r = p->m_expr_2->m_attribute.m_basetype;
-            if(r != bt_integer)
+            if(r != bt_integer){
                 t_error(sym_type_mismatch, p->m_attribute);
+
+            }
         }
 
         // This method will throw an error unless:
@@ -355,7 +357,7 @@ class Typecheck : public Visitor {
             // WRITEME
             // ASSERT left hand side var exists, is a variable, and get type
             Basetype l = get_ident_type(p->m_symname_1->spelling(), (bt_integer | bt_boolean),p->m_attribute);
-            
+
             // ASSERT the parameters match, and the function return type matches
             // assuming that you have the type of the left hand side variable
             // in "assigned_to_type", you can just uncomment the following line
@@ -607,7 +609,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT symbol under varname exists and is either an integer or a boolean
-            Basetype e = get_ident_type(p->m_symname->spelling(),(bt_boolean|bt_integer),p->m_attribute);
+            Basetype e = get_ident_type(p->m_symname->spelling(),(bt_intarray|bt_boolean|bt_integer),p->m_attribute);
             p -> m_attribute.m_basetype = e;
         }
 
@@ -616,7 +618,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT the array symbol exists and is indeed an array
-            Basetype e = get_ident_type(p->m_symname->spelling(),bt_arrayaccess,p->m_attribute);
+            Basetype e = get_ident_type(p->m_symname->spelling(),bt_intarray,p->m_attribute);
             Basetype i = p->m_expr->m_attribute.m_basetype;
             if(i != bt_integer)
                 t_error(array_index_error,p->m_attribute);

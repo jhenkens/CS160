@@ -1,0 +1,4 @@
+function int Main() {
+
+	return | | -5 | |;
+}

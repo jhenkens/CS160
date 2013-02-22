@@ -1,0 +1,5 @@
+function int Main() {
+    while(true){
+            return 0;
+    }
+}
