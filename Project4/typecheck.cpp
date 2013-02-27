@@ -13,6 +13,10 @@
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
+#define TESTING 0
+
+#define tprint(...) if(TESTING) printf(__VA_ARGS__)
+
 // the default attribute propagation rule
 // sets the node's scope to the current scope (don't worry about this)
 // and then visits the children of the node
@@ -156,13 +160,19 @@ class Typecheck : public Visitor {
             char* name;
 
             Basetype type = p -> m_type -> m_attribute.m_basetype;
-
+            tprint("adding declaration of type %d in decl\n",type);
             forall(symname_iter, p -> m_symname_list) {
                 Symbol *s = new Symbol();
                 s -> m_basetype = type;
                 name = strdup((*symname_iter) -> spelling());
+                if (TESTING && !m_st -> lookup(name)){
+                    tprint("Sanity check that name %s doesn't exist before insert\n",name);
+                }
                 if (! m_st -> insert(name, s)){
                     this -> t_error(dup_ident_name,  p -> m_attribute);
+                }
+                if (TESTING && (s = m_st -> lookup(name))){
+                    tprint("Sanity check that name %s does exist after insert, with type %d and address %p\n",name,s->m_basetype,s);
                 }
             }
         }
@@ -177,8 +187,15 @@ class Typecheck : public Visitor {
             Symbol *s = new Symbol();
             s -> m_basetype = type;
             name = strdup(p -> m_symname -> spelling());
+            tprint("adding declaration of type %d in param\n",type);
+            if (TESTING && !m_st -> lookup(name)){
+                tprint("Sanity check that name %s doesn't exist before insert\n",name);
+            }
             if (! m_st -> insert(name, s)){
                 this -> t_error(dup_ident_name, p -> m_attribute);
+            }
+            if (TESTING && (s = m_st -> lookup(name))){
+                tprint("Sanity check that name %s does exist after insert, with type %d and address %p\n",name,s->m_basetype,s);
             }
         }
 
@@ -196,12 +213,17 @@ class Typecheck : public Visitor {
         // It returns the actual type of the symbol.
         Basetype get_ident_type(const char* name, char accepted_types, Attribute m_attribute)
         {
+            tprint("checking for symbolname %s, with types %d. The follow dump takes place before lookup...\n",name,accepted_types);
+            if(TESTING) m_st->dump(stderr);
             Symbol* s;
             s = m_st -> lookup(name);
+            //tprint("address pulled was %p\n",s);
             if ( s == NULL){
+                tprint("couldn't find s\n");
                 this -> t_error( sym_name_undef, m_attribute);
             }
             if ( !(s->m_basetype & accepted_types )){
+                tprint("mismatch. found type: %d, expected type %d, at addr %p\n",s->m_basetype,accepted_types,s);
                 this -> t_error( sym_type_mismatch, m_attribute); 
             }
             return s->m_basetype;
@@ -294,15 +316,18 @@ class Typecheck : public Visitor {
 
         void visitAssignment(Assignment * p)
         {
+            tprint("testin\n");
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT left hand side var exists, and is an int/bool
-            Basetype l = get_ident_type(p->m_symname->spelling(), (bt_intarray | bt_integer | bt_boolean),p->m_attribute);
+            Basetype l = get_ident_type(p->m_symname->spelling(), ( bt_integer | bt_boolean),p->m_attribute);
+            tprint("testmiddle\n");
             // ASSERT right hand side matches that type
             Basetype r = p->m_expr->m_attribute.m_basetype;
             if ( l != r ){
                 t_error(sym_type_mismatch, p->m_attribute);
             }
+            tprint("testout\n");
         }
 
         void visitArrayAssignment(ArrayAssignment * p)
@@ -310,7 +335,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME	
             // ASSERT array exists and is an array
-            Basetype l = get_ident_type(p->m_symname->spelling(), (bt_intarray),p->m_attribute);
+            get_ident_type(p->m_symname->spelling(), (bt_intarray),p->m_attribute);
             // ASSERT index is an integer
             Basetype i = p->m_expr_1->m_attribute.m_basetype;
             if(i != bt_integer){
@@ -343,7 +368,7 @@ class Typecheck : public Visitor {
             }
 
             // ASSERT args match in count and types
-            int count = 0;
+            unsigned int count = 0;
             forall(exprIterator, exprList)
             {
                 if (count >= f -> m_arg_type.size()){
@@ -385,7 +410,7 @@ class Typecheck : public Visitor {
 
             // WRITEME
             // ASSERT the variable is an array
-            Basetype l = get_ident_type(p->m_symname_1->spelling(), (bt_intarray),p->m_attribute);
+            get_ident_type(p->m_symname_1->spelling(), (bt_intarray),p->m_attribute);
 
             // WRITEME
             // ASSERT the index parameter is an integer
@@ -642,7 +667,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT symbol under varname exists and is either an integer or a boolean
-            Basetype e = get_ident_type(p->m_symname->spelling(),(bt_intarray|bt_boolean|bt_integer),p->m_attribute);
+            Basetype e = get_ident_type(p->m_symname->spelling(),(bt_integer|bt_boolean),p->m_attribute);
             p -> m_attribute.m_basetype = e;
         }
 
@@ -651,7 +676,7 @@ class Typecheck : public Visitor {
             set_scope_and_descend_into_children(p);
             // WRITEME
             // ASSERT the array symbol exists and is indeed an array
-            Basetype e = get_ident_type(p->m_symname->spelling(),bt_intarray,p->m_attribute);
+            get_ident_type(p->m_symname->spelling(),bt_intarray,p->m_attribute);
             Basetype i = p->m_expr->m_attribute.m_basetype;
             if(i != bt_integer){
                 t_error(array_index_error,p->m_attribute);
