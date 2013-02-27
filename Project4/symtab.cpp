@@ -391,7 +391,7 @@ Symbol* SymScope::lookup( const char * name )
     if ( i != m_scopetable.end() ) {
         return i->second;
     }
-
+    return NULL;
 }
 
 
