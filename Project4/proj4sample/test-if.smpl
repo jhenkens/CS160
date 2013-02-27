@@ -1,0 +1,18 @@
+function int Main() {
+	var int a, b;
+	
+	a = 3;
+	if (a > b) {
+		a = 4;
+	}
+	a = a;
+
+	if (a > b) {
+		a = 4;
+		b = 7-a;
+	} else {
+		a = 3;
+		b = 6-a;
+	}
+	return a + b;
+}

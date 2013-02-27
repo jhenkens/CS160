@@ -1,0 +1,130 @@
+digraph G { 
+"1" [label="Program"]
+"0" -> "1"
+"2" [label="Func"]
+"1" -> "2"
+"3" [label="TInt"]
+"2" -> "3"
+"4" [label="SymName\n\"Main\""]
+"2" -> "4"
+"5" [label="FunctionBlock"]
+"2" -> "5"
+"6" [label="Decl"]
+"5" -> "6"
+"7" [label="TInt"]
+"6" -> "7"
+"8" [label="SymName\n\"a\""]
+"6" -> "8"
+"9" [label="SymName\n\"b\""]
+"6" -> "9"
+"10" [label="Assignment"]
+"5" -> "10"
+"11" [label="SymName\n\"a\""]
+"10" -> "11"
+"12" [label="IntLit\n<3>"]
+"10" -> "12"
+"13" [label="Primitive\n3"]
+"12" -> "13"
+"14" [label="IfNoElse"]
+"5" -> "14"
+"15" [label="Gt\n<TOP>"]
+"14" -> "15"
+"16" [label="Ident\n<3>"]
+"15" -> "16"
+"17" [label="SymName\n\"a\""]
+"16" -> "17"
+"18" [label="Ident\n<TOP>"]
+"15" -> "18"
+"19" [label="SymName\n\"b\""]
+"18" -> "19"
+"20" [label="NestedBlock"]
+"14" -> "20"
+"21" [label="Assignment"]
+"20" -> "21"
+"22" [label="SymName\n\"a\""]
+"21" -> "22"
+"23" [label="IntLit\n<4>"]
+"21" -> "23"
+"24" [label="Primitive\n4"]
+"23" -> "24"
+"25" [label="Assignment"]
+"5" -> "25"
+"26" [label="SymName\n\"a\""]
+"25" -> "26"
+"27" [label="Ident\n<TOP>"]
+"25" -> "27"
+"28" [label="SymName\n\"a\""]
+"27" -> "28"
+"29" [label="IfWithElse"]
+"5" -> "29"
+"30" [label="Gt\n<TOP>"]
+"29" -> "30"
+"31" [label="Ident\n<TOP>"]
+"30" -> "31"
+"32" [label="SymName\n\"a\""]
+"31" -> "32"
+"33" [label="Ident\n<TOP>"]
+"30" -> "33"
+"34" [label="SymName\n\"b\""]
+"33" -> "34"
+"35" [label="NestedBlock"]
+"29" -> "35"
+"36" [label="Assignment"]
+"35" -> "36"
+"37" [label="SymName\n\"a\""]
+"36" -> "37"
+"38" [label="IntLit\n<4>"]
+"36" -> "38"
+"39" [label="Primitive\n4"]
+"38" -> "39"
+"40" [label="Assignment"]
+"35" -> "40"
+"41" [label="SymName\n\"b\""]
+"40" -> "41"
+"42" [label="Minus\n<3>"]
+"40" -> "42"
+"43" [label="IntLit\n<7>"]
+"42" -> "43"
+"44" [label="Primitive\n7"]
+"43" -> "44"
+"45" [label="Ident\n<4>"]
+"42" -> "45"
+"46" [label="SymName\n\"a\""]
+"45" -> "46"
+"47" [label="NestedBlock"]
+"29" -> "47"
+"48" [label="Assignment"]
+"47" -> "48"
+"49" [label="SymName\n\"a\""]
+"48" -> "49"
+"50" [label="IntLit\n<3>"]
+"48" -> "50"
+"51" [label="Primitive\n3"]
+"50" -> "51"
+"52" [label="Assignment"]
+"47" -> "52"
+"53" [label="SymName\n\"b\""]
+"52" -> "53"
+"54" [label="Minus\n<3>"]
+"52" -> "54"
+"55" [label="IntLit\n<6>"]
+"54" -> "55"
+"56" [label="Primitive\n6"]
+"55" -> "56"
+"57" [label="Ident\n<3>"]
+"54" -> "57"
+"58" [label="SymName\n\"a\""]
+"57" -> "58"
+"59" [label="Return"]
+"5" -> "59"
+"60" [label="Plus\n<TOP>"]
+"59" -> "60"
+"61" [label="Ident\n<TOP>"]
+"60" -> "61"
+"62" [label="SymName\n\"a\""]
+"61" -> "62"
+"63" [label="Ident\n<3>"]
+"60" -> "63"
+"64" [label="SymName\n\"b\""]
+"63" -> "64"
+}; 

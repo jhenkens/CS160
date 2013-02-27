@@ -1,0 +1,60 @@
+digraph G { 
+"1" [label="Program"]
+"0" -> "1"
+"2" [label="Func"]
+"1" -> "2"
+"3" [label="TInt"]
+"2" -> "3"
+"4" [label="SymName\n\"Main\""]
+"2" -> "4"
+"5" [label="FunctionBlock"]
+"2" -> "5"
+"6" [label="Decl"]
+"5" -> "6"
+"7" [label="TInt"]
+"6" -> "7"
+"8" [label="SymName\n\"a\""]
+"6" -> "8"
+"9" [label="Assignment"]
+"5" -> "9"
+"10" [label="SymName\n\"a\""]
+"9" -> "10"
+"11" [label="IntLit\n<0>"]
+"9" -> "11"
+"12" [label="Primitive\n0"]
+"11" -> "12"
+"13" [label="WhileLoop"]
+"5" -> "13"
+"14" [label="Lt\n<TOP>"]
+"13" -> "14"
+"15" [label="Ident\n<TOP>"]
+"14" -> "15"
+"16" [label="SymName\n\"a\""]
+"15" -> "16"
+"17" [label="IntLit\n<5>"]
+"14" -> "17"
+"18" [label="Primitive\n5"]
+"17" -> "18"
+"19" [label="NestedBlock"]
+"13" -> "19"
+"20" [label="Assignment"]
+"19" -> "20"
+"21" [label="SymName\n\"a\""]
+"20" -> "21"
+"22" [label="Plus\n<TOP>"]
+"20" -> "22"
+"23" [label="Ident\n<TOP>"]
+"22" -> "23"
+"24" [label="SymName\n\"a\""]
+"23" -> "24"
+"25" [label="IntLit\n<1>"]
+"22" -> "25"
+"26" [label="Primitive\n1"]
+"25" -> "26"
+"27" [label="Return"]
+"5" -> "27"
+"28" [label="Ident\n<TOP>"]
+"27" -> "28"
+"29" [label="SymName\n\"a\""]
+"28" -> "29"
+}; 

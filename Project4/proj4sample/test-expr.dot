@@ -1,0 +1,60 @@
+digraph G { 
+"1" [label="Program"]
+"0" -> "1"
+"2" [label="Func"]
+"1" -> "2"
+"3" [label="TBool"]
+"2" -> "3"
+"4" [label="SymName\n\"Main\""]
+"2" -> "4"
+"5" [label="FunctionBlock"]
+"2" -> "5"
+"6" [label="Decl"]
+"5" -> "6"
+"7" [label="TInt"]
+"6" -> "7"
+"8" [label="SymName\n\"a\""]
+"6" -> "8"
+"9" [label="Return"]
+"5" -> "9"
+"10" [label="And\n<1>"]
+"9" -> "10"
+"11" [label="Gt\n<1>"]
+"10" -> "11"
+"12" [label="Plus\n<35>"]
+"11" -> "12"
+"13" [label="IntLit\n<35>"]
+"12" -> "13"
+"14" [label="Primitive\n35"]
+"13" -> "14"
+"15" [label="Times\n<0>"]
+"12" -> "15"
+"16" [label="Times\n<TOP>"]
+"15" -> "16"
+"17" [label="IntLit\n<6>"]
+"16" -> "17"
+"18" [label="Primitive\n6"]
+"17" -> "18"
+"19" [label="Ident\n<TOP>"]
+"16" -> "19"
+"20" [label="SymName\n\"a\""]
+"19" -> "20"
+"21" [label="IntLit\n<0>"]
+"15" -> "21"
+"22" [label="Primitive\n0"]
+"21" -> "22"
+"23" [label="Div\n<0>"]
+"11" -> "23"
+"24" [label="IntLit\n<0>"]
+"23" -> "24"
+"25" [label="Primitive\n0"]
+"24" -> "25"
+"26" [label="IntLit\n<5>"]
+"23" -> "26"
+"27" [label="Primitive\n5"]
+"26" -> "27"
+"28" [label="BoolLit\n<1>"]
+"10" -> "28"
+"29" [label="Primitive\n1"]
+"28" -> "29"
+}; 
