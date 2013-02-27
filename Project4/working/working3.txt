@@ -1,0 +1,17 @@
+function int Main()
+{
+    var int total; [$ variable declarations $]
+
+    function int square(int t) [$ function declarations $]
+    {
+        var int temp;
+        var int total2;
+        temp = t * t;
+        total = temp; [$ using variable from Main's scope $]
+            return 0;
+    }
+
+    total = 1; [$ statements $]
+
+    return 0; [$ return statement $]
+}
