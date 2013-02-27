@@ -77,323 +77,323 @@ using namespace std;
  *     separately, not minding other functions. As a consequence:
  *       + We assume each function always returns TOP. We will not assume anything more precise.
  *       + We don't assume anything about global variables; therefore they're (initially) TOP, and nothing one function
- *         does to a global affects the same global in other functions.
- *       + We assume that any function may alter any visible var's state. To simplify the analysis ALL variables should 
- *         be set to TOP after each call statement.
- *   * We are not keeping track of IntArrays. Any array element is assumed to be TOP at all times.
- * Also:
- *   * Anything multiplied by 0 is 0
- *   * Dividing 0 by anything is always 0, and dividing anything by 0 makes the result TOP for the purposes of the analysis
- *   * false AND anything is false, true OR anything is true
- *
- * While it is possible to do a more detailed analysis, that is not allowed in order to keep the grading fair. If you have 
- * a good idea about doing a more precise analysis, great, talk to us about it, but for this assignment do exactly the 
- * analysis posted here; no more and no less.
- */
+*         does to a global affects the same global in other functions.
+*       + We assume that any function may alter any visible var's state. To simplify the analysis ALL variables should 
+*         be set to TOP after each call statement.
+*   * We are not keeping track of IntArrays. Any array element is assumed to be TOP at all times.
+* Also:
+*   * Anything multiplied by 0 is 0
+*   * Dividing 0 by anything is always 0, and dividing anything by 0 makes the result TOP for the purposes of the analysis
+*   * false AND anything is false, true OR anything is true
+*
+* While it is possible to do a more detailed analysis, that is not allowed in order to keep the grading fair. If you have 
+* a good idea about doing a more precise analysis, great, talk to us about it, but for this assignment do exactly the 
+* analysis posted here; no more and no less.
+*/
 
 class ConstantFolding : public CFVisitor {
-private:
-  FILE* m_errorfile;
-  SymTab* m_st;
+    private:
+        FILE* m_errorfile;
+        SymTab* m_st;
 
-public:
-  LatticeElemMap* visitProgram(Program *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+    public:
+        LatticeElemMap* visitProgram(Program *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitFunc(Func *p, LatticeElemMap *in)
-  {
-    // Intraprocedural; so let's start a new analysis for each function with a blank LatticeElemMap
-    LatticeElemMap* newMap = new LatticeElemMap();
-    newMap = visit_children_of(p, newMap);
-    delete newMap;
-    return in;
-  }
+        LatticeElemMap* visitFunc(Func *p, LatticeElemMap *in)
+        {
+            // Intraprocedural; so let's start a new analysis for each function with a blank LatticeElemMap
+            LatticeElemMap* newMap = new LatticeElemMap();
+            newMap = visit_children_of(p, newMap);
+            delete newMap;
+            return in;
+        }
 
-  LatticeElemMap* visitFunction_block(Function_block *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitFunction_block(Function_block *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitNested_block(Nested_block *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitNested_block(Nested_block *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitParam(Param *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitParam(Param *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitDecl(Decl *p, LatticeElemMap *in)
-  {
-     in = visit_children_of(p, in);
-     return in;
-  }
+        LatticeElemMap* visitDecl(Decl *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitReturn(Return *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitReturn(Return *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitAssignment(Assignment *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitAssignment(Assignment *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitArrayAssignment(ArrayAssignment *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitArrayAssignment(ArrayAssignment *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitCall(Call *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitCall(Call *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitArrayCall(ArrayCall *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitArrayCall(ArrayCall *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitIfNoElse(IfNoElse *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitIfNoElse(IfNoElse *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitIfWithElse(IfWithElse *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitIfWithElse(IfWithElse *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitWhileLoop(WhileLoop *p, LatticeElemMap *in)
-  {
-    // NOTE: this here is implemented for you. Use it as a template
-    
-    // While loops happen in this order: the expression is evaluated at least
-    // once, and then any number of times, the block is execuded followed by
-    // one more expression evaluation.
-    //
-    // Therefore, our expression receives input from either the statement
-    // before the while, or from the block itself! But the block also receives
-    // information from the expression. It goes in circles.
-    //
-    // Therefore, we're going to loop our LatticeElemMap through the while block
-    // as long as there are changes to the LatticeElemMap. Once the LatticeElemMap
-    // stops being changed by iterating through the block, we've reached a fix-point
-    // and only then can we continue.
-    
+        LatticeElemMap* visitWhileLoop(WhileLoop *p, LatticeElemMap *in)
+        {
+            // NOTE: this here is implemented for you. Use it as a template
 
-    // So first, visit the expression.
-    in = visit(p->m_expr, in);
+            // While loops happen in this order: the expression is evaluated at least
+            // once, and then any number of times, the block is execuded followed by
+            // one more expression evaluation.
+            //
+            // Therefore, our expression receives input from either the statement
+            // before the while, or from the block itself! But the block also receives
+            // information from the expression. It goes in circles.
+            //
+            // Therefore, we're going to loop our LatticeElemMap through the while block
+            // as long as there are changes to the LatticeElemMap. Once the LatticeElemMap
+            // stops being changed by iterating through the block, we've reached a fix-point
+            // and only then can we continue.
 
-    // And then, as many times as needed,
-    while(true) {
-	// Copy this lattice elem map into another
-    	LatticeElemMap* clone = new LatticeElemMap(*in);
-	
-	// Visit the block using this clone
-    	clone = visit(p->m_nested_block, clone);
 
-	// Join the original "in" lattice_elem_map with the clone,
-	// storing the result in the clone
-	join_lattice_elem_maps(clone, in);
-    	
-	// now visit the expression
-	clone = visit(p->m_expr, clone);
+            // So first, visit the expression.
+            in = visit(p->m_expr, in);
 
-	// Compare them
-	bool equal = lattice_maps_equal(in, clone);
+            // And then, as many times as needed,
+            while(true) {
+                // Copy this lattice elem map into another
+                LatticeElemMap* clone = new LatticeElemMap(*in);
 
-	// Make "in" point to the clone, deleting in
-	delete in;
-	in = clone;
+                // Visit the block using this clone
+                clone = visit(p->m_nested_block, clone);
 
-	// If the clone was the same as "in", meaning that we've reached a fix-point,
-	// we're done!
-	if (equal)
-		return in;
-    }
-  }
+                // Join the original "in" lattice_elem_map with the clone,
+                // storing the result in the clone
+                join_lattice_elem_maps(clone, in);
 
-  LatticeElemMap* visitTInt(TInt *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+                // now visit the expression
+                clone = visit(p->m_expr, clone);
 
-  LatticeElemMap* visitTBool(TBool *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+                // Compare them
+                bool equal = lattice_maps_equal(in, clone);
 
-  LatticeElemMap* visitTIntArray(TIntArray *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+                // Make "in" point to the clone, deleting in
+                delete in;
+                in = clone;
 
-  LatticeElemMap* visitAnd(And *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
-  
-  LatticeElemMap* visitOr(Or *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+                // If the clone was the same as "in", meaning that we've reached a fix-point,
+                // we're done!
+                if (equal)
+                    return in;
+            }
+        }
 
-  LatticeElemMap* visitCompare(Compare *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
-  
-  LatticeElemMap* visitNoteq(Noteq *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitTInt(TInt *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitGt(Gt *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitTBool(TBool *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitGteq(Gteq *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitTIntArray(TIntArray *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitLt(Lt *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitAnd(And *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitLteq(Lteq *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitOr(Or *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitUminus(Uminus *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
-  
-  LatticeElemMap* visitMagnitude(Magnitude *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitCompare(Compare *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitPlus(Plus *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitNoteq(Noteq *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitMinus(Minus *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitGt(Gt *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitTimes(Times *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitGteq(Gteq *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitDiv(Div *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitLt(Lt *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitNot(Not *p, LatticeElemMap *in)
-  {
-    // First visit the child expression. After this line of code, the child
-    // expression should have a valid LatticeElem stored inside it
-    in = visit_children_of(p, in);
+        LatticeElemMap* visitLteq(Lteq *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-    // Read that lattice element
-    LatticeElem &e = p->m_expr->m_attribute.m_lattice_elem;
+        LatticeElemMap* visitUminus(Uminus *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-    // If it's TOP, then we cannot know anything about this expression; it should be TOP as well
-    if (e == TOP)
-	    p->m_attribute.m_lattice_elem = TOP;
-    else
-	    // Otherwise, it contains the boolean opposite of the child's LatticeElem
-	    p->m_attribute.m_lattice_elem = !(e.value);
+        LatticeElemMap* visitMagnitude(Magnitude *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-    // And now we return the LatticeElemMap. We didn't modify it, we didn't need to.
-    return in;
-  }
+        LatticeElemMap* visitPlus(Plus *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitIdent(Ident *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitMinus(Minus *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitArrayAccess(ArrayAccess *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+        LatticeElemMap* visitTimes(Times *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitIntLit(IntLit *p, LatticeElemMap *in)
-  {
-    // store the constant's value in this expression's LatticeElem
-    p->m_attribute.m_lattice_elem = p -> m_primitive -> m_data;
-    return in;
-  }
+        LatticeElemMap* visitDiv(Div *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
 
-  LatticeElemMap* visitBoolLit(BoolLit *p, LatticeElemMap *in)
-  {
-    // store the constant's value in this expression's LatticeElem
-    p->m_attribute.m_lattice_elem = p -> m_primitive -> m_data;
-    return in;
-  }
+        LatticeElemMap* visitNot(Not *p, LatticeElemMap *in)
+        {
+            // First visit the child expression. After this line of code, the child
+            // expression should have a valid LatticeElem stored inside it
+            in = visit_children_of(p, in);
 
-  LatticeElemMap* visitSymName(SymName *p, LatticeElemMap *in)
-  {
-    in = visit_children_of(p, in);
-    return in;
-  }
+            // Read that lattice element
+            LatticeElem &e = p->m_expr->m_attribute.m_lattice_elem;
 
-  LatticeElemMap* visitPrimitive(Primitive *p, LatticeElemMap *in)
-  {
-    return in;
-  }
+            // If it's TOP, then we cannot know anything about this expression; it should be TOP as well
+            if (e == TOP)
+                p->m_attribute.m_lattice_elem = TOP;
+            else
+                // Otherwise, it contains the boolean opposite of the child's LatticeElem
+                p->m_attribute.m_lattice_elem = !(e.value);
 
-  ConstantFolding(FILE* errorfile, SymTab* st) 
-  {
-	m_errorfile = errorfile;
-	m_st = st; 
-  }
+            // And now we return the LatticeElemMap. We didn't modify it, we didn't need to.
+            return in;
+        }
 
-  ~ConstantFolding() {}
+        LatticeElemMap* visitIdent(Ident *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
+
+        LatticeElemMap* visitArrayAccess(ArrayAccess *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
+
+        LatticeElemMap* visitIntLit(IntLit *p, LatticeElemMap *in)
+        {
+            // store the constant's value in this expression's LatticeElem
+            p->m_attribute.m_lattice_elem = p -> m_primitive -> m_data;
+            return in;
+        }
+
+        LatticeElemMap* visitBoolLit(BoolLit *p, LatticeElemMap *in)
+        {
+            // store the constant's value in this expression's LatticeElem
+            p->m_attribute.m_lattice_elem = p -> m_primitive -> m_data;
+            return in;
+        }
+
+        LatticeElemMap* visitSymName(SymName *p, LatticeElemMap *in)
+        {
+            in = visit_children_of(p, in);
+            return in;
+        }
+
+        LatticeElemMap* visitPrimitive(Primitive *p, LatticeElemMap *in)
+        {
+            return in;
+        }
+
+        ConstantFolding(FILE* errorfile, SymTab* st) 
+        {
+            m_errorfile = errorfile;
+            m_st = st; 
+        }
+
+        ~ConstantFolding() {}
 };
 
 
