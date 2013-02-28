@@ -1,11 +1,10 @@
 function int Main()
 {
     var int total; [$ variable declarations $]
-
     function int square(int t) [$ function declarations $]
     {
+        var int total;
         var int temp;
-        var int total2;
         temp = t * t;
         total = temp; [$ using variable from Main's scope $]
             return 0;
