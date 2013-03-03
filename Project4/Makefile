@@ -50,5 +50,10 @@ typecheck.o: typecheck.cpp ast.hpp symtab.hpp primitive.hpp attribute.hpp
 
 constantfolding.o: constantfolding.cpp ast.hpp symtab.hpp primitive.hpp attribute.hpp
 
+turnin: clean
+	mkdir typecheck
+	cp ast2dot.cpp astbuilder.gawk ast.cdef attribute.hpp constantfolding.cpp lexer.l main.cpp Makefile parser.ypp primitive.cpp primitive.hpp README symtab.cpp symtab.hpp typecheck.cpp typecheck
+
 clean:
+	rm -rf typecheck
 	rm -f $(RMFILES)
