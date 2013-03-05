@@ -13,6 +13,10 @@
 #define forall(iterator,listptr) \
 	for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
+#define TESTING 0
+
+#define tprint(...) if(TESTING) printf(__VA_ARGS__)
+
 // the default attribute propagation rule
 // sets the node's scope to the current scope (don't worry about this)
 // and then visits the children of the node
