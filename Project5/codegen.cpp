@@ -5,6 +5,13 @@
 #include <typeinfo>
 #include <stdio.h>
 
+#define TESTING 0
+
+#define tprint(...) if(TESTING) printf(__VA_ARGS__)
+
+#define mpr(...) fprintf(m_outputfile,__VA_ARGS__)
+
+
 class Codegen : public Visitor
 {
     private:
@@ -121,7 +128,6 @@ class Codegen : public Visitor
         {
             m_outputfile = outputfile;
             m_st = st;
-
             label_count = 0;
         }
 
@@ -204,30 +210,83 @@ class Codegen : public Visitor
         // arithmetic and logic operations
         void visitAnd(And * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n");
+            mpr("pop %%eax\n");
+            mpr("and %%ebx %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitOr(Or * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n");
+            mpr("pop %%eax\n");
+            mpr("or %%ebx %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitMinus(Minus * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n"); // expr2
+            mpr("pop %%eax\n"); // expr1
+            // sub src dest -> dest = dest - src
+            mpr("sub %%ebx %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitPlus(Plus * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n");
+            mpr("pop %%eax\n");
+            mpr("add %%ebx %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitTimes(Times * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n");
+            mpr("pop %%eax\n");
+            mpr("mul %%ebx\n");
+            mpr("push %%eax\n");
         }
         void visitDiv(Div * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            mpr("pop %%ebx\n");
+            mpr("pop %%eax\n");
+            mpr("cdq\n");
+            mpr("div %%ebx\n");
+            mpr("push %%eax\n");
         }
         void visitNot(Not * p)
         {
+            visit(p->m_expr);
+            mpr("pop %%eax\n");
+            mpr("not %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitUminus(Uminus * p)
         {
+            visit(p->m_expr);
+            mpr("pop %%eax\n");
+            mpr("neg %%eax\n");
+            mpr("push %%eax\n");
         }
         void visitMagnitude(Magnitude * p)
         {
+            // From: http://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation
+            visit(p->m_expr);
+            mpr("pop %%eax\n");
+            mpr("mov %%eax %%ebx\n");
+            mpr("neg %%eax\n");
+            mpr("cmovl %%ebx %%eax\n");
+            mpr("push %%eax\n");
         }
 
         // variable and constant access
@@ -236,6 +295,7 @@ class Codegen : public Visitor
         }
         void visitIntLit(IntLit * p)
         {
+            mpr("push %d\n",p->m_primitive->m_data);
         }
         void visitBoolLit(BoolLit * p)
         {
