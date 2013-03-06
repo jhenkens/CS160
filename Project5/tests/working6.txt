@@ -1,0 +1,13 @@
+function int Main() {
+
+		var intarray[100] a, b;
+	        var int c,i;
+	        c = -5;
+	        a[19] = 24 + 3;
+	        a[4+2] = 5;
+	        b = a;
+	        b[3] = b[6] + b[19] + |c|;
+            
+		while (i < 5) { a[5]=5; } [$ we assume i has been declared $]
+	return 0;
+}
