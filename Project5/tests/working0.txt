@@ -1,0 +1,7 @@
+function int Main() {
+	var int j;
+    j = (2+3)*4 - 10/3;
+	return j;
+}
+
+

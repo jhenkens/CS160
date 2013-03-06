@@ -7,9 +7,13 @@
 
 #define TESTING 0
 
+#define forall(iterator,listptr) \
+    for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
+
 #define tprint(...) if(TESTING) printf(__VA_ARGS__)
 
 #define mpr(...) fprintf(m_outputfile,__VA_ARGS__)
+#define lpr(...) fprintf(m_outputfile,"_%s",__VA_ARGS__)
 
 
 class Codegen : public Visitor
@@ -112,10 +116,35 @@ class Codegen : public Visitor
 
         void emit_prologue(SymName *name, unsigned int size_locals, unsigned int num_args)
         {
+            tprint("%d, %d\n",size_locals,num_args);
+            lpr(name->spelling());
+            mpr(":\n");
+            mpr("    push %%ebp\n");
+            mpr("    push %%ebx\n");
+            mpr("    push %%esi\n");
+            mpr("    push %%edi\n");
+            mpr("    mov %%esp, %%ebp\n");
+            if(num_args>0){
+                int offset = 20;
+                while(num_args>0){
+                    mpr("    mov %d(%%ebp), %%eax\n",offset);
+                    mpr("    push %%eax\n");
+                    offset+=4;
+                    num_args--;
+                }
+            }
+            if(size_locals>0){
+                mpr("    sub $%d, %%esp\n",size_locals);
+            }
         }
 
         void emit_epilogue()
         {
+            mpr("    pop %%edi\n");
+            mpr("    pop %%esi\n");
+            mpr("    pop %%ebx\n");
+            mpr("    leave"); //this is the same as MOV BP, SP; POP BP
+            mpr("    ret\n");
         }
 
         // HERE: more functions to emit code
@@ -133,78 +162,122 @@ class Codegen : public Visitor
 
         void visitProgram(Program * p)
         {
+            list<Func_ptr>::iterator listItr;
+            mpr(".globl");
+            forall(listItr,p->m_func_list){
+                mpr(" ");
+                lpr((*listItr)->m_symname->spelling());
+            }
+            mpr("\n");
+            visit_children_of(p);
+            
         }
         void visitFunc(Func * p)
         {
+            emit_prologue(p->m_symname,m_st->scopesize(p->m_function_block->m_attribute.m_scope),p->m_param_list->size());
+            visit(p->m_function_block);
+            emit_epilogue();
         }
         void visitFunction_block(Function_block * p)
         {
+            visit_children_of(p);
         }
         void visitNested_block(Nested_block * p)
         {
+            visit_children_of(p);
         }
         void visitAssignment(Assignment * p)
         {
+            visit(p->m_expr);
+            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+            assert(s!=NULL);
+            mpr("    pop %%eax\n");
+            mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+4);
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
+            visit(p->m_expr_1);
+            visit(p->m_expr_2);
+            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+            assert(s!=NULL);
+            mpr("    pop %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s->get_offset()+4);
         }
         void visitCall(Call * p)
         {
+            visit_children_of(p);
         }
         void visitArrayCall(ArrayCall *p)
         {
+            visit_children_of(p);
         }
         void visitReturn(Return * p)
         {
+            visit_children_of(p);
+            mpr("    pop %%eax\n");
         }
 
         // control flow
         void visitIfNoElse(IfNoElse * p)
         {
+            visit_children_of(p);
         }
         void visitIfWithElse(IfWithElse * p)
         {
+            visit_children_of(p);
         }
         void visitWhileLoop(WhileLoop * p)
         {
+            visit_children_of(p);
         }
 
         // variable declarations (no code generation needed)
         void visitDecl(Decl * p)
         {
+            visit_children_of(p);
         }
         void visitParam(Param *p)
         {
+            visit_children_of(p);
         }
         void visitTInt(TInt * p)
         {
+            visit_children_of(p);
         }
         void visitTBool(TBool * p)
         {
+            visit_children_of(p);
         }
         void visitTIntArray(TIntArray * p)
         {
+            visit_children_of(p);
         }
 
         // comparison operations
         void visitCompare(Compare * p)
         {
+            visit_children_of(p);
         }
         void visitNoteq(Noteq * p)
         {
+            visit_children_of(p);
         }
         void visitGt(Gt * p)
         {
+            visit_children_of(p);
         }
         void visitGteq(Gteq * p)
         {
+            visit_children_of(p);
         }
         void visitLt(Lt * p)
         {
+            visit_children_of(p);
         }
         void visitLteq(Lteq * p)
         {
+            visit_children_of(p);
         }
 
         // arithmetic and logic operations
@@ -212,96 +285,110 @@ class Codegen : public Visitor
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n");
-            mpr("pop %%eax\n");
-            mpr("and %%ebx %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    pop %%eax\n");
+            mpr("    and %%ebx, %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitOr(Or * p)
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n");
-            mpr("pop %%eax\n");
-            mpr("or %%ebx %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    pop %%eax\n");
+            mpr("    or %%ebx, %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitMinus(Minus * p)
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n"); // expr2
-            mpr("pop %%eax\n"); // expr1
+            mpr("    pop %%ebx\n"); // expr2
+            mpr("    pop %%eax\n"); // expr1
             // sub src dest -> dest = dest - src
-            mpr("sub %%ebx %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    sub %%ebx, %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitPlus(Plus * p)
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n");
-            mpr("pop %%eax\n");
-            mpr("add %%ebx %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    pop %%eax\n");
+            mpr("    add %%ebx, %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitTimes(Times * p)
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n");
-            mpr("pop %%eax\n");
-            mpr("mul %%ebx\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    pop %%eax\n");
+            mpr("    imul %%ebx\n");
+            mpr("    push %%eax\n");
         }
         void visitDiv(Div * p)
         {
             visit(p->m_expr_1);
             visit(p->m_expr_2);
-            mpr("pop %%ebx\n");
-            mpr("pop %%eax\n");
-            mpr("cdq\n");
-            mpr("div %%ebx\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    pop %%eax\n");
+            mpr("    cdq\n");
+            mpr("    idiv %%ebx\n");
+            mpr("    push %%eax\n");
         }
         void visitNot(Not * p)
         {
             visit(p->m_expr);
-            mpr("pop %%eax\n");
-            mpr("not %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%eax\n");
+            mpr("    not %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitUminus(Uminus * p)
         {
             visit(p->m_expr);
-            mpr("pop %%eax\n");
-            mpr("neg %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%eax\n");
+            mpr("    neg %%eax\n");
+            mpr("    push %%eax\n");
         }
         void visitMagnitude(Magnitude * p)
         {
             // From: http://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation
             visit(p->m_expr);
-            mpr("pop %%eax\n");
-            mpr("mov %%eax %%ebx\n");
-            mpr("neg %%eax\n");
-            mpr("cmovl %%ebx %%eax\n");
-            mpr("push %%eax\n");
+            mpr("    pop %%eax\n");
+            mpr("    mov %%eax, %%ebx\n");
+            mpr("    neg %%eax\n");
+            mpr("    cmovl %%ebx, %%eax\n");
+            mpr("    push %%eax\n");
         }
 
         // variable and constant access
         void visitIdent(Ident * p)
         {
+            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+            assert(s!=NULL);
+            mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+4);
+            mpr("    push %%eax\n");
         }
         void visitIntLit(IntLit * p)
         {
-            mpr("push %d\n",p->m_primitive->m_data);
+            mpr("    mov $%d, %%eax\n",p->m_primitive->m_data);
+            mpr("    push %%eax\n");
         }
         void visitBoolLit(BoolLit * p)
         {
+            mpr("    mov $%d, %%eax\n",p->m_primitive->m_data);
+            mpr("    push %%eax\n");
         }
         void visitArrayAccess(ArrayAccess * p)
         {
+            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+            assert(s!=NULL);
+            visit(p->m_expr);
+            mpr("    pop %%ebx\n");
+            mpr("    mov -%d(%%ebp,%%ebx,-1), %%eax\n",s->get_offset()+4);
+            mpr("    push %%eax\n");
+            visit_children_of(p);
         }
 
         // special cases
