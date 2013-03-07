@@ -1,16 +1,15 @@
 function int test(int a, int b) {
     var int c;
-    return a;
+    return 4;
 }
 function int Main() {
     var int j,k;
-    var bool m;
-[$    j = (2+3)*4 - 10/3;
+    j = (2+3)*4 - 10/3;
     k = j + 2;
-    j = test(4, 6); $]
-    j=0;
-    while(j<=5){
-        j=j+1;
+    j = test(4, 6);
+    while( k < 30){
+        j = j*j;
+        k=k+10;
     }
     return j;
 }

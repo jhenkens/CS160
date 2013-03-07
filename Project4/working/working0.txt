@@ -1,11 +1,17 @@
-function int test(int a, bool b) {
+function int test(int a, int b) {
     var int c;
-    return a;
+    return 4;
 }
 function int Main() {
-    var int j;
+    var int j,k;
     j = (2+3)*4 - 10/3;
-    j = test(2, false);
-    return j;
+    k = j + 2;
+    j = test(4, 6);
+    if( 4 >= 5 ){
+        k = 1000;
+    } else{
+        k = -1000;
+    }
+    return k;
 }
 
