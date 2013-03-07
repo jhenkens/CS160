@@ -1,0 +1,2 @@
+As far as I know, project works correctly. I had some problems with the comparator for Lt, Lte, Gt, Gte. What seemed to make sense was apparently backwards, so I commented out the 'sensical' line, and placed the working, non-sensical line.
+I saved four registers in the Callee to be proper x86 calling conventions.
