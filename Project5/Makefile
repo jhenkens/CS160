@@ -52,6 +52,10 @@ constantfolding.o: constantfolding.cpp ast.hpp symtab.hpp primitive.hpp attribut
 
 codegen.o: codegen.cpp ast.hpp symtab.hpp primitive.hpp
 
+turnin: clean
+	mkdir codegen
+	cp ast2dot.cpp astbuilder.gawk ast.cdef attribute.hpp constantfolding.cpp lexer.l main.cpp Makefile parser.ypp primitive.cpp primitive.hpp README symtab.cpp symtab.hpp typecheck.cpp codegen.cpp codegen
+
 clean:
 	rm -f $(RMFILES)
-
+	rm -rf codegen
