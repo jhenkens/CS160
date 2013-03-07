@@ -122,7 +122,6 @@ class Codegen : public Visitor
 
         void emit_prologue(SymName *name, unsigned int size_locals, unsigned int num_args)
         {
-            m_st->dump(stderr);
             tprint("// Function %s, with %d bytes of locals, and %d args\n",name->spelling(),size_locals,num_args);
             if(strcmp("Main",name->spelling())==0){
                 mpr("_Main:\n");
@@ -213,7 +212,7 @@ class Codegen : public Visitor
             visit(p->m_expr);
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
-            tprint("// Visiting assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+            tprint("// Visiting assign %s: pop off stack, then save to loc with offset %d\n",p->m_symname->spelling(),s->get_offset());
             tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             mpr("    pop %%eax\n");
             mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter);
@@ -439,7 +438,8 @@ class Codegen : public Visitor
                 mpr("    pop %%ebx\n");
                 mpr("    pop %%eax\n");
                 tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
+                //mpr("    cmp %%eax, %%ebx\n");
+                mpr("    cmp %%ebx, %%eax\n");
                 mpr("    jg %s%d\n",str.c_str(),label);
                 mpr("    mov $0, %%eax\n");
                 mpr("    jmp done%s%d\n",str.c_str(),retLabel);
@@ -466,7 +466,8 @@ class Codegen : public Visitor
                 mpr("    pop %%ebx\n");
                 mpr("    pop %%eax\n");
                 tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
+                //mpr("    cmp %%eax, %%ebx\n");
+                mpr("    cmp %%ebx, %%eax\n");
                 mpr("    jge %s%d\n",str.c_str(),label);
                 mpr("    mov $0, %%eax\n");
                 mpr("    jmp done%s%d\n",str.c_str(),retLabel);
@@ -493,7 +494,8 @@ class Codegen : public Visitor
                 mpr("    pop %%ebx\n");
                 mpr("    pop %%eax\n");
                 tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
+                //mpr("    cmp %%eax, %%ebx\n");
+                mpr("    cmp %%ebx, %%eax\n");
                 mpr("    jl %s%d\n",str.c_str(),label);
                 mpr("    mov $0, %%eax\n");
                 mpr("    jmp done%s%d\n",str.c_str(),retLabel);
@@ -520,7 +522,8 @@ class Codegen : public Visitor
                 mpr("    pop %%ebx\n");
                 mpr("    pop %%eax\n");
                 tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
+                //mpr("    cmp %%eax, %%ebx\n");
+                mpr("    cmp %%ebx, %%eax\n");
                 mpr("    jle %s%d\n",str.c_str(),label);
                 mpr("    mov $0, %%eax\n");
                 mpr("    jmp done%s%d\n",str.c_str(),retLabel);
