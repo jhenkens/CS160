@@ -5,15 +5,17 @@
 #include <typeinfo>
 #include <stdio.h>
 
-#define TESTING 0
+#define TESTING 1
 
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
+#define forallrev(iterator,listptr) \
+    for(iterator = listptr->rbegin(); iterator != listptr->rend(); iterator++) \
+
 #define tprint(...) if(TESTING) printf(__VA_ARGS__)
 
 #define mpr(...) fprintf(m_outputfile,__VA_ARGS__)
-#define lpr(...) fprintf(m_outputfile,"_%s",__VA_ARGS__)
 
 
 class Codegen : public Visitor
@@ -25,6 +27,10 @@ class Codegen : public Visitor
 
         // basic size of a word (integers and booleans) in bytes
         static const int wordsize = 4;
+        static const int fFBefore = 2*wordsize;
+        //have 4 words here, because we save 3 words on the stack to save data
+        //but we don't reach free memory till the fourth word
+        static const int fFAfter = 4*wordsize;
 
         int label_count; //access with new_label
 
@@ -116,35 +122,47 @@ class Codegen : public Visitor
 
         void emit_prologue(SymName *name, unsigned int size_locals, unsigned int num_args)
         {
-            tprint("%d, %d\n",size_locals,num_args);
-            lpr(name->spelling());
-            mpr(":\n");
+            m_st->dump(stderr);
+            tprint("// Function %s, with %d bytes of locals, and %d args\n",name->spelling(),size_locals,num_args);
+            if(strcmp("Main",name->spelling())==0){
+                mpr("_Main:\n");
+            }
+            mpr("%s:\n",name->spelling());
+            tprint("// Store caller EBP\n");
             mpr("    push %%ebp\n");
+            mpr("    mov %%esp, %%ebp\n");
+            tprint("// Store other caller regs\n");
             mpr("    push %%ebx\n");
             mpr("    push %%esi\n");
             mpr("    push %%edi\n");
-            mpr("    mov %%esp, %%ebp\n");
             if(num_args>0){
-                int offset = 20;
+                tprint("// Copy function args to local space. Saved regs + return addr take up %d space before %%ebp\n",fFBefore);
+                int offset = fFBefore;
                 while(num_args>0){
+                    tprint("// Copying arg to local: offset %d\n",offset);
                     mpr("    mov %d(%%ebp), %%eax\n",offset);
                     mpr("    push %%eax\n");
-                    offset+=4;
+                    offset+=wordsize;
                     num_args--;
                 }
+                tprint("// Done copying function args\n");
             }
             if(size_locals>0){
+                tprint("// Decrement the stack pointer to make space for locals\n");
                 mpr("    sub $%d, %%esp\n",size_locals);
             }
         }
 
         void emit_epilogue()
         {
+            tprint("// Starting function epilogue. Pop the three basic regs\n");
+            tprint("// Then call leave, which does mov ebp esp, then pop ebp, then ret\n");
             mpr("    pop %%edi\n");
             mpr("    pop %%esi\n");
             mpr("    pop %%ebx\n");
-            mpr("    leave"); //this is the same as MOV BP, SP; POP BP
+            mpr("    leave\n");
             mpr("    ret\n");
+            tprint("// Done with Epilogue\n");
         }
 
         // HERE: more functions to emit code
@@ -162,19 +180,23 @@ class Codegen : public Visitor
 
         void visitProgram(Program * p)
         {
-            list<Func_ptr>::iterator listItr;
+            mpr(".globl _Main\n");
+            mpr(".globl Main\n");
+            /*list<Func_ptr>::iterator listItr;
             mpr(".globl");
             forall(listItr,p->m_func_list){
                 mpr(" ");
                 lpr((*listItr)->m_symname->spelling());
             }
-            mpr("\n");
+            mpr("\n");*/ // This isn't actually what you do!
             visit_children_of(p);
-            
+
         }
         void visitFunc(Func * p)
         {
-            emit_prologue(p->m_symname,m_st->scopesize(p->m_function_block->m_attribute.m_scope),p->m_param_list->size());
+            int scopeSize = m_st->scopesize(p->m_function_block->m_attribute.m_scope);
+            int numParams = p->m_param_list->size();
+            emit_prologue(p->m_symname,scopeSize-(wordsize*numParams),numParams);
             visit(p->m_function_block);
             emit_epilogue();
         }
@@ -191,8 +213,10 @@ class Codegen : public Visitor
             visit(p->m_expr);
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
+            tprint("// Visiting assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             mpr("    pop %%eax\n");
-            mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+4);
+            mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter);
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
@@ -200,22 +224,60 @@ class Codegen : public Visitor
             visit(p->m_expr_2);
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
+            tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+            tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
+            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             mpr("    pop %%eax\n");
             mpr("    pop %%ebx\n");
-            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s->get_offset()+4);
+            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s->get_offset()+fFAfter);
         }
         void visitCall(Call * p)
         {
-            visit_children_of(p);
+            Symbol* s1 = m_st->lookup(p->m_attribute.m_scope,p->m_symname_1->spelling());
+            assert(s1!=NULL);
+            list<Expr_ptr>::reverse_iterator exprItr;
+            int dec = 0;
+            tprint("// visitCall: %s\n",p->m_symname_2->spelling());
+            tprint("// Visiting call arguments. Each will be pushed onto stack in reverse order.\n");
+            tprint("// reverse order is x86 calling convention, as per http://www.delorie.com/djgpp/doc/ug/asm/calling.html\n");
+            forallrev(exprItr,p->m_expr_list){
+                visit((*exprItr));
+                dec+=wordsize;
+            }
+            tprint("// Visiting call %s -- finished setting up arguments\n",p->m_symname_2->spelling());
+            mpr("    call %s\n",p->m_symname_2->spelling());
+            tprint("// After call, result is in eax\n");
+            tprint("// Call assign: save eax to loc with offset %d\n",s1->get_offset());
+            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
+            mpr("    mov %%eax, -%d(%%ebp)\n",s1->get_offset()+fFAfter);
+            tprint("// Now we have to clean up stack from our arguments. We pushed %d bytes on\n",dec);
+            mpr("    add $%d, %%esp\n",dec);
         }
         void visitArrayCall(ArrayCall *p)
         {
-            visit_children_of(p);
+            visit(p->m_expr_1);
+
+            Symbol* s1 = m_st->lookup(p->m_attribute.m_scope,p->m_symname_1->spelling());
+            assert(s1!=NULL);
+
+            list<Expr_ptr>::reverse_iterator exprItr;
+            int dec = 0;
+            forallrev(exprItr,p->m_expr_list_2){
+                visit((*exprItr));
+                dec+=wordsize;
+            }
+            mpr("    call %s\n",p->m_symname_2->spelling());
+            mpr("    pop %%eax\n");
+            mpr("    pop %%ebx\n");
+            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s1->get_offset()+fFAfter);
+            mpr("    add $%d, %%esp\n",dec);
         }
         void visitReturn(Return * p)
-        {
+        {   tprint("// Starting return statement\n");
             visit_children_of(p);
+            tprint("// Finished the expr of return, now pop to eax\n");
             mpr("    pop %%eax\n");
+            tprint("// End of return statement\n");
         }
 
         // control flow
@@ -367,7 +429,7 @@ class Codegen : public Visitor
         {
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
-            mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+4);
+            mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+fFAfter);
             mpr("    push %%eax\n");
         }
         void visitIntLit(IntLit * p)
@@ -386,7 +448,7 @@ class Codegen : public Visitor
             assert(s!=NULL);
             visit(p->m_expr);
             mpr("    pop %%ebx\n");
-            mpr("    mov -%d(%%ebp,%%ebx,-1), %%eax\n",s->get_offset()+4);
+            mpr("    mov -%d(%%ebp,%%ebx,-1), %%eax\n",s->get_offset()+fFAfter);
             mpr("    push %%eax\n");
             visit_children_of(p);
         }

@@ -1,11 +1,11 @@
-function int test(int a, int b) {
+function int test(int a, bool b) {
     var int c;
     return a;
 }
 function int Main() {
     var int j;
     j = (2+3)*4 - 10/3;
-    j = test(4, 6);
+    j = test(2, false);
     return j;
 }
 
