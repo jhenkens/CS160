@@ -3,9 +3,15 @@ function int test(int a, int b) {
     return a;
 }
 function int Main() {
-    var int j;
-    j = (2+3)*4 - 10/3;
-    j = test(4, 6);
+    var int j,k;
+    var bool m;
+[$    j = (2+3)*4 - 10/3;
+    k = j + 2;
+    j = test(4, 6); $]
+    j=0;
+    while(j<=5){
+        j=j+1;
+    }
     return j;
 }
 

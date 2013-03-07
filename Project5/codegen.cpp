@@ -283,15 +283,70 @@ class Codegen : public Visitor
         // control flow
         void visitIfNoElse(IfNoElse * p)
         {
-            visit_children_of(p);
+            if(p->m_expr->m_attribute.m_lattice_elem == TOP){
+                int label = new_label();
+                visit(p->m_expr);
+                tprint("// IfNoElse\n");
+                mpr("    pop %%eax\n");
+                mpr("    cmp $1, %%eax\n");
+                tprint("// IfNoElse:: Compare with 1, but jump if not equal\n");
+                mpr("    jne IfNoElseDone%d\n",label);
+                visit(p->m_nested_block);
+                mpr("IfNoElseDone%d:\n",label);
+                tprint("// Done with IfNoElse\n");
+            } else if(p->m_expr->m_attribute.m_lattice_elem.value = 1){
+                tprint("// IfNoElse - FOLDED to TRUE\n");
+                visit(p->m_nested_block);
+            } else{
+                tprint("// IfNoElse - FOLDED to FALSE. Eliminated all code.\n");
+            }
         }
         void visitIfWithElse(IfWithElse * p)
         {
-            visit_children_of(p);
+            if(p->m_expr->m_attribute.m_lattice_elem == TOP){
+                int label = new_label();
+                int donelabel = new_label();
+                visit(p->m_expr);
+                tprint("// IfWithElse\n");
+                mpr("    pop %%eax\n");
+                mpr("    cmp $1, %%eax\n");
+                tprint("// IfWithElse:: Compare with 1, but jump if not equal\n");
+                mpr("    jne IfWithElse%d\n",label);
+                tprint("// IfWithElse:: If block\n");
+                visit(p->m_nested_block_1);
+                mpr("    jmp IfWithElseDone%d\n",donelabel);
+                tprint("// IfWithElse:: Else block\n");
+                mpr("IfWithElse%d:\n",label);
+                visit(p->m_nested_block_2);
+                mpr("IfWithElseDone%d:\n",donelabel);
+                tprint("// Done with IfWithElse\n");
+            } else if(p->m_expr->m_attribute.m_lattice_elem.value = 1){
+                tprint("// IfWithElse - FOLDED to TRUE\n");
+                visit(p->m_nested_block_1);
+            } else{
+                tprint("// IfWithElse - FOLDED to FALSE\n");
+                visit(p->m_nested_block_2);
+            }
         }
         void visitWhileLoop(WhileLoop * p)
         {
-            visit_children_of(p);
+            if(p->m_expr->m_attribute.m_lattice_elem == TOP || p->m_expr->m_attribute.m_lattice_elem.value == 1){
+                int label = new_label();
+                int donelabel = new_label();
+                tprint("// While\n");
+                mpr("While%d:\n",label);
+                visit(p->m_expr);
+                mpr("    pop %%eax\n");
+                mpr("    cmp $1, %%eax\n");
+                tprint("// While:: Compare with 1, but jump if not equal\n");
+                mpr("    jne WhileDone%d\n",donelabel);
+                visit(p->m_nested_block);
+                mpr("    jmp While%d\n",label);
+                mpr("WhileDone%d:\n",donelabel);
+                tprint("// Done with While\n");
+            } else {
+                tprint("// While - FOLDED to FALSE. Eliminated all code.\n");
+            }
         }
 
         // variable declarations (no code generation needed)
@@ -319,137 +374,350 @@ class Codegen : public Visitor
         // comparison operations
         void visitCompare(Compare * p)
         {
-            visit_children_of(p);
+            string str = "Compare";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    je %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitNoteq(Noteq * p)
         {
-            visit_children_of(p);
+            string str = "NotEq";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    jne %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
+
         }
         void visitGt(Gt * p)
         {
-            visit_children_of(p);
+            string str = "GreaterThan";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    jg %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitGteq(Gteq * p)
         {
-            visit_children_of(p);
+            string str = "GreaterThanEq";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    jge %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitLt(Lt * p)
         {
-            visit_children_of(p);
+            string str = "LessThan";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    jl %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitLteq(Lteq * p)
         {
-            visit_children_of(p);
+            string str = "LessThanEq";
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
+                int label = new_label();
+                int retLabel = new_label();
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
+                mpr("    cmp %%eax, %%ebx\n");
+                mpr("    jle %s%d\n",str.c_str(),label);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
+                mpr("%s%d:\n",str.c_str(),label);
+                mpr("    mov $1, %%eax\n");
+                mpr("done%s%d:\n",str.c_str(),retLabel);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",str.c_str());
+            } else{
+                tprint("// %s - FOLDED\n",str.c_str());
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
 
         // arithmetic and logic operations
         void visitAnd(And * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n");
-            mpr("    pop %%eax\n");
-            mpr("    and %%ebx, %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// And\n");
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                mpr("    and %%ebx, %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// And - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitOr(Or * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n");
-            mpr("    pop %%eax\n");
-            mpr("    or %%ebx, %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Or\n");
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                mpr("    or %%ebx, %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Or - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitMinus(Minus * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n"); // expr2
-            mpr("    pop %%eax\n"); // expr1
-            // sub src dest -> dest = dest - src
-            mpr("    sub %%ebx, %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Minus\n");
+                mpr("    pop %%ebx\n"); // expr2
+                mpr("    pop %%eax\n"); // expr1
+                // sub src dest -> dest = dest - src
+                mpr("    sub %%ebx, %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Minus - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitPlus(Plus * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n");
-            mpr("    pop %%eax\n");
-            mpr("    add %%ebx, %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Plus\n");
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                mpr("    add %%ebx, %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Plus - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitTimes(Times * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n");
-            mpr("    pop %%eax\n");
-            mpr("    imul %%ebx\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Times\n");
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                mpr("    imul %%ebx\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Times - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitDiv(Div * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
-            mpr("    pop %%ebx\n");
-            mpr("    pop %%eax\n");
-            mpr("    cdq\n");
-            mpr("    idiv %%ebx\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Div\n");
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                mpr("    cdq\n");
+                mpr("    idiv %%ebx\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Div - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitNot(Not * p)
         {
-            visit(p->m_expr);
-            mpr("    pop %%eax\n");
-            mpr("    not %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                tprint("// Not\n");
+                mpr("    pop %%eax\n");
+                mpr("    not %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Not - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitUminus(Uminus * p)
         {
-            visit(p->m_expr);
-            mpr("    pop %%eax\n");
-            mpr("    neg %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                tprint("// Uminus\n");
+                mpr("    pop %%eax\n");
+                mpr("    neg %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Uminus - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitMagnitude(Magnitude * p)
         {
             // From: http://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation
-            visit(p->m_expr);
-            mpr("    pop %%eax\n");
-            mpr("    mov %%eax, %%ebx\n");
-            mpr("    neg %%eax\n");
-            mpr("    cmovl %%ebx, %%eax\n");
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                tprint("// Magnitude\n");
+                mpr("    pop %%eax\n");
+                mpr("    mov %%eax, %%ebx\n");
+                mpr("    neg %%eax\n");
+                mpr("    cmovl %%ebx, %%eax\n");
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Magnitude - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
 
         // variable and constant access
         void visitIdent(Ident * p)
         {
-            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
-            assert(s!=NULL);
-            mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+fFAfter);
-            mpr("    push %%eax\n");
+            if(p->m_attribute.m_lattice_elem == TOP){
+                Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+                assert(s!=NULL);
+                tprint("// Ident %s\n",p->m_symname->spelling());
+                mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+fFAfter);
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// Ident - FOLDED\n");
+                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
+                mpr("    push %%eax\n");
+            }
         }
         void visitIntLit(IntLit * p)
         {
-            mpr("    mov $%d, %%eax\n",p->m_primitive->m_data);
+            tprint("// IntLit(%d)\n",p->m_primitive->m_data);
+            mpr("    movl $%d, %%eax\n",p->m_primitive->m_data);
             mpr("    push %%eax\n");
         }
         void visitBoolLit(BoolLit * p)
         {
-            mpr("    mov $%d, %%eax\n",p->m_primitive->m_data);
+            tprint("// BoolLit(%d)\n",p->m_primitive->m_data);
+            mpr("    movl $%d, %%eax\n",p->m_primitive->m_data);
             mpr("    push %%eax\n");
         }
         void visitArrayAccess(ArrayAccess * p)
         {
+            tprint("// ArrayAccess %s\n", p->m_symname->spelling());
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
             visit(p->m_expr);
             mpr("    pop %%ebx\n");
             mpr("    mov -%d(%%ebp,%%ebx,-1), %%eax\n",s->get_offset()+fFAfter);
             mpr("    push %%eax\n");
+            tprint("// End Array Access\n");
             visit_children_of(p);
         }
 
