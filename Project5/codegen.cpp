@@ -293,7 +293,7 @@ class Codegen : public Visitor
                 visit(p->m_nested_block);
                 mpr("IfNoElseDone%d:\n",label);
                 tprint("// Done with IfNoElse\n");
-            } else if(p->m_expr->m_attribute.m_lattice_elem.value = 1){
+            } else if(p->m_expr->m_attribute.m_lattice_elem.value == 1){
                 tprint("// IfNoElse - FOLDED to TRUE\n");
                 visit(p->m_nested_block);
             } else{
@@ -319,7 +319,7 @@ class Codegen : public Visitor
                 visit(p->m_nested_block_2);
                 mpr("IfWithElseDone%d:\n",donelabel);
                 tprint("// Done with IfWithElse\n");
-            } else if(p->m_expr->m_attribute.m_lattice_elem.value = 1){
+            } else if(p->m_expr->m_attribute.m_lattice_elem.value == 1){
                 tprint("// IfWithElse - FOLDED to TRUE\n");
                 visit(p->m_nested_block_1);
             } else{
