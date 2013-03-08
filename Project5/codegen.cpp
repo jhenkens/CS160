@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <stdio.h>
 
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 #define TESTING 1
 
 #define forall(iterator,listptr) \
@@ -165,6 +166,31 @@ class Codegen : public Visitor
         }
 
         // HERE: more functions to emit code
+        //
+        void emit_conditional(Expr* e1, Expr* e2, LatticeElem& lE, char* labelName, char* instr, int labelNum)
+        {
+            if(lE == TOP){
+                visit(e1);
+                visit(e2);
+                tprint("// %s. ebx==expr2, eax==expr1\n",labelName);
+                mpr("    pop %%ebx\n");
+                mpr("    pop %%eax\n");
+                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",labelName);
+                mpr("    cmp %%ebx, %%eax\n");
+                mpr("    %s %s%d\n",instr,labelName,labelNum);
+                mpr("    mov $0, %%eax\n");
+                mpr("    jmp %sDone%d\n",labelName,labelNum);
+                mpr("%s%d:\n",labelName,labelNum);
+                mpr("    mov $1, %%eax\n");
+                mpr("%sDone%d:\n",labelName,labelNum);
+                mpr("    push %%eax\n");
+                tprint("// Done with %s\n",labelName);
+            } else{
+                tprint("// %s - FOLDED\n",labelName);
+                mpr("    mov $%d, %%eax\n",lE.value);
+                mpr("    push %%eax\n");
+            }
+        }
 
         ////////////////////////////////////////////////////////////////////////////////
 
@@ -373,170 +399,33 @@ class Codegen : public Visitor
         // comparison operations
         void visitCompare(Compare * p)
         {
-            string str = "Compare";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
-                mpr("    je %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "Compare", "je", new_label());
         }
         void visitNoteq(Noteq * p)
         {
-            string str = "NotEq";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                mpr("    cmp %%eax, %%ebx\n");
-                mpr("    jne %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
-
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "NotEq", "jne", new_label());
         }
         void visitGt(Gt * p)
         {
-            string str = "GreaterThan";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                //mpr("    cmp %%eax, %%ebx\n");
-                mpr("    cmp %%ebx, %%eax\n");
-                mpr("    jg %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "GreaterThan", "jg", new_label());
         }
         void visitGteq(Gteq * p)
         {
-            string str = "GreaterThanEq";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                //mpr("    cmp %%eax, %%ebx\n");
-                mpr("    cmp %%ebx, %%eax\n");
-                mpr("    jge %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "GreaterThanEq", "jge", new_label());
         }
         void visitLt(Lt * p)
         {
-            string str = "LessThan";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                //mpr("    cmp %%eax, %%ebx\n");
-                mpr("    cmp %%ebx, %%eax\n");
-                mpr("    jl %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "LessThan", "jl", new_label());
         }
         void visitLteq(Lteq * p)
         {
-            string str = "LessThanEq";
-            if(p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",str.c_str());
-                int label = new_label();
-                int retLabel = new_label();
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",str.c_str());
-                //mpr("    cmp %%eax, %%ebx\n");
-                mpr("    cmp %%ebx, %%eax\n");
-                mpr("    jle %s%d\n",str.c_str(),label);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp done%s%d\n",str.c_str(),retLabel);
-                mpr("%s%d:\n",str.c_str(),label);
-                mpr("    mov $1, %%eax\n");
-                mpr("done%s%d:\n",str.c_str(),retLabel);
-                mpr("    push %%eax\n");
-                tprint("// Done with %s\n",str.c_str());
-            } else{
-                tprint("// %s - FOLDED\n",str.c_str());
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                "LessThanEqual", "jle", new_label());
         }
 
         // arithmetic and logic operations
