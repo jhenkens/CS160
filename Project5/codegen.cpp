@@ -7,6 +7,7 @@
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #define TESTING 1
+#define FOLDING 0
 
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
@@ -169,7 +170,7 @@ class Codegen : public Visitor
         //
         void emit_conditional(Expr* e1, Expr* e2, LatticeElem& lE, char* labelName, char* instr, int labelNum)
         {
-            if(lE == TOP){
+            if(!FOLDING || lE == TOP){
                 visit(e1);
                 visit(e2);
                 tprint("// %s. ebx==expr2, eax==expr1\n",labelName);
@@ -235,13 +236,18 @@ class Codegen : public Visitor
         }
         void visitAssignment(Assignment * p)
         {
-            visit(p->m_expr);
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
             tprint("// Visiting assign %s: pop off stack, then save to loc with offset %d\n",p->m_symname->spelling(),s->get_offset());
             tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
-            mpr("    pop %%eax\n");
-            mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter);
+            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                mpr("    pop %%eax\n");
+                mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter);
+            } else{
+                tprint("// Assign FOLDED!\n");
+                mpr("    movl $%d, -%d(%%ebp)\n",p->m_expr->m_attribute.m_lattice_elem.value,s->get_offset()+fFAfter);
+            }
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
@@ -308,7 +314,7 @@ class Codegen : public Visitor
         // control flow
         void visitIfNoElse(IfNoElse * p)
         {
-            if(p->m_expr->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
                 int label = new_label();
                 visit(p->m_expr);
                 tprint("// IfNoElse\n");
@@ -328,7 +334,7 @@ class Codegen : public Visitor
         }
         void visitIfWithElse(IfWithElse * p)
         {
-            if(p->m_expr->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
                 int label = new_label();
                 int donelabel = new_label();
                 visit(p->m_expr);
@@ -355,7 +361,7 @@ class Codegen : public Visitor
         }
         void visitWhileLoop(WhileLoop * p)
         {
-            if(p->m_expr->m_attribute.m_lattice_elem == TOP || p->m_expr->m_attribute.m_lattice_elem.value == 1){
+            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP || p->m_expr->m_attribute.m_lattice_elem.value == 1){
                 int label = new_label();
                 int donelabel = new_label();
                 tprint("// While\n");
@@ -431,7 +437,7 @@ class Codegen : public Visitor
         // arithmetic and logic operations
         void visitAnd(And * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// And\n");
@@ -447,7 +453,7 @@ class Codegen : public Visitor
         }
         void visitOr(Or * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// Or\n");
@@ -463,7 +469,7 @@ class Codegen : public Visitor
         }
         void visitMinus(Minus * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// Minus\n");
@@ -480,7 +486,7 @@ class Codegen : public Visitor
         }
         void visitPlus(Plus * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// Plus\n");
@@ -496,7 +502,7 @@ class Codegen : public Visitor
         }
         void visitTimes(Times * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// Times\n");
@@ -512,7 +518,7 @@ class Codegen : public Visitor
         }
         void visitDiv(Div * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
                 tprint("// Div\n");
@@ -529,7 +535,7 @@ class Codegen : public Visitor
         }
         void visitNot(Not * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr);
                 tprint("// Not\n");
                 mpr("    pop %%eax\n");
@@ -543,7 +549,7 @@ class Codegen : public Visitor
         }
         void visitUminus(Uminus * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr);
                 tprint("// Uminus\n");
                 mpr("    pop %%eax\n");
@@ -558,7 +564,7 @@ class Codegen : public Visitor
         void visitMagnitude(Magnitude * p)
         {
             // From: http://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr);
                 tprint("// Magnitude\n");
                 mpr("    pop %%eax\n");
@@ -576,7 +582,7 @@ class Codegen : public Visitor
         // variable and constant access
         void visitIdent(Ident * p)
         {
-            if(p->m_attribute.m_lattice_elem == TOP){
+            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
                 assert(s!=NULL);
                 tprint("// Ident %s\n",p->m_symname->spelling());
