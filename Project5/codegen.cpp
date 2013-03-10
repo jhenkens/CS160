@@ -251,16 +251,43 @@ class Codegen : public Visitor
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
-            visit(p->m_expr_1);
-            visit(p->m_expr_2);
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
-            tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
-            tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
-            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
-            mpr("    pop %%eax\n");
-            mpr("    pop %%ebx\n");
-            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s->get_offset()+fFAfter);
+            if(!FOLDING || (p->m_expr_1->m_attribute.m_lattice_elem == TOP && p->m_expr_1->m_attribute.m_lattice_elem == TOP)){
+                visit(p->m_expr_1);
+                visit(p->m_expr_2);
+                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
+                tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
+                mpr("    pop %%eax\n");
+                mpr("    pop %%ebx\n");
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+            } else if (p->m_expr_2->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_2);
+                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
+                tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
+                tprint("// Array Assign Expr1 folded!\n");
+                mpr("    pop %%eax\n");
+                mpr("    mov $%d, %%ebx\n",p->m_expr_1->m_attribute.m_lattice_elem.value);
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+            } else if (p->m_expr_1->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr_1);
+                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
+                tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
+                tprint("// Array Assign Expr2 folded!\n");
+                mpr("    pop %%ebx\n");
+                mpr("    mov $%d, %%eax\n",p->m_expr_2->m_attribute.m_lattice_elem.value);
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+            } else{
+                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
+                tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
+                tprint("// Array Assign completely folded!\n");
+                mpr("    movl $%d, -%d(%%ebp)\n",p->m_expr_2->m_attribute.m_lattice_elem.value,s->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
+            }
+
         }
         void visitCall(Call * p)
         {
@@ -286,21 +313,37 @@ class Codegen : public Visitor
         }
         void visitArrayCall(ArrayCall *p)
         {
-            visit(p->m_expr_1);
+            bool folded = FOLDING && (p->m_expr_1->m_attribute.m_lattice_elem != TOP);
+            if(!folded){
+                visit(p->m_expr_1);
+            }
 
             Symbol* s1 = m_st->lookup(p->m_attribute.m_scope,p->m_symname_1->spelling());
             assert(s1!=NULL);
 
             list<Expr_ptr>::reverse_iterator exprItr;
             int dec = 0;
+            tprint("// visitArrayCallCall: %s\n",p->m_symname_2->spelling());
+            tprint("// Visiting call arguments. Each will be pushed onto stack in reverse order.\n");
+            tprint("// reverse order is x86 calling convention, as per http://www.delorie.com/djgpp/doc/ug/asm/calling.html\n");
             forallrev(exprItr,p->m_expr_list_2){
                 visit((*exprItr));
                 dec+=wordsize;
             }
+            tprint("// Visiting array call %s -- finished setting up arguments\n",p->m_symname_2->spelling());
             mpr("    call %s\n",p->m_symname_2->spelling());
+            tprint("// After call, result is in eax\n");
+            tprint("// Call array assign: save eax to loc with offset, and index %d\n",s1->get_offset());
+            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             mpr("    pop %%eax\n");
-            mpr("    pop %%ebx\n");
-            mpr("    mov %%eax, -%d(%%ebp,%%ebx,-1)\n",s1->get_offset()+fFAfter);
+            if(!folded){
+                tprint("// Array index is in ebx. It was not folded\n");
+                mpr("    pop %%ebx\n");
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s1->get_offset()+fFAfter);
+            } else{
+                tprint("// Array index folded in ArrayCall!\n");
+                mpr("    movl %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
+            }
             mpr("    add $%d, %%esp\n",dec);
         }
         void visitReturn(Return * p)
@@ -613,7 +656,7 @@ class Codegen : public Visitor
             assert(s!=NULL);
             visit(p->m_expr);
             mpr("    pop %%ebx\n");
-            mpr("    mov -%d(%%ebp,%%ebx,-1), %%eax\n",s->get_offset()+fFAfter);
+            mpr("    mov -%d(%%ebp,%%ebx,-4), %%eax\n",s->get_offset()+fFAfter);
             mpr("    push %%eax\n");
             tprint("// End Array Access\n");
             visit_children_of(p);
