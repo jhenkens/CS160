@@ -7,9 +7,6 @@
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
-#define TESTING 0
-
-#define tprint(...) if(TESTING) printf(__VA_ARGS__)
 
 using namespace std;
 
@@ -135,28 +132,28 @@ class ConstantFolding : public CFVisitor {
         {
             in = visit_children_of(p, in);
             //begin testing block:
-            tprint("DEBUG::VISITPARAM: Found symname %s\n",(p->m_symname->spelling()));
+            //tprint("DEBUG::VISITPARAM: Found symname %s\n",(p->m_symname->spelling()));
             if(in->find(p->m_symname->spelling()) == in->end()){
-                tprint("\tFound null in symname table\n");
-                tprint("\tSanity check, value is found: %s\n",(in->find(p->m_symname->spelling()) != in->end())?"true":"false");
+                //tprint("\tFound null in symname table\n");
+                //tprint("\tSanity check, value is found: %s\n",(in->find(p->m_symname->spelling()) != in->end())?"true":"false");
 
             } else {
                 LatticeElem& e = (*in)[(p->m_symname->spelling())];
-                tprint("\tFound non-null in symname table\n");
+                //tprint("\tFound non-null in symname table\n");
                 if(e==TOP){
-                    tprint("\t\tFound TOP\n");
+                    //tprint("\t\tFound TOP\n");
                 }
                 else if(e==BOTTOM){
-                    tprint("\t\tFound BOTTOM\n");
+                    //tprint("\t\tFound BOTTOM\n");
                 }
                 else{
-                    tprint("\t\tFound %d\n",e.value);
+                    //tprint("\t\tFound %d\n",e.value);
                 }
             }
             //end testing block
-            tprint("\tAdding element with value top\n");
+            //tprint("\tAdding element with value top\n");
             (*in)[p->m_symname->spelling()]=TOP;
-            tprint("\tSanity check, value is found: %s\n",(in->find(p->m_symname->spelling()) != in->end())?"true":"false");
+            //tprint("\tSanity check, value is found: %s\n",(in->find(p->m_symname->spelling()) != in->end())?"true":"false");
             return in;
 
         }
@@ -167,28 +164,28 @@ class ConstantFolding : public CFVisitor {
             list<SymName_ptr>::iterator symname_iter;
             forall(symname_iter,p -> m_symname_list){
                 //begin testing block:
-                tprint("DEBUG::VISITDECL: Found symname %s\n",(*symname_iter)->spelling());
+                //tprint("DEBUG::VISITDECL: Found symname %s\n",(*symname_iter)->spelling());
                 if(in->find((*symname_iter)->spelling()) == in->end()){
-                    tprint("\tFound null in symname table\n");
-                    tprint("\tSanity check, value is found: %s\n",(in->find((*symname_iter)->spelling()) != in->end())?"true":"false");
+                    //tprint("\tFound null in symname table\n");
+                    //tprint("\tSanity check, value is found: %s\n",(in->find((*symname_iter)->spelling()) != in->end())?"true":"false");
 
                 } else {
                     LatticeElem& e = (*in)[(*symname_iter)->spelling()];
-                    tprint("\tFound non-null in symname table\n");
+                    //tprint("\tFound non-null in symname table\n");
                     if(e==TOP){
-                        tprint("\t\tFound TOP\n");
+                        //tprint("\t\tFound TOP\n");
                     }
                     else if(e==BOTTOM){
-                        tprint("\t\tFound BOTTOM\n");
+                        //tprint("\t\tFound BOTTOM\n");
                     }
                     else{
-                        tprint("\t\tFound %d\n",e.value);
+                        //tprint("\t\tFound %d\n",e.value);
                     }
                 }
                 //end testing block
-                tprint("\tAdding element with value top\n");
+                //tprint("\tAdding element with value top\n");
                 (*in)[(*symname_iter)->spelling()]=TOP;
-                tprint("\tSanity check, value is found: %s\n",(in->find(strdup((*symname_iter)->spelling())) != in->end())?"true":"false");
+                //tprint("\tSanity check, value is found: %s\n",(in->find(strdup((*symname_iter)->spelling())) != in->end())?"true":"false");
             }
             return in;
         }

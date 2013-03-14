@@ -13,9 +13,6 @@
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
-#define TESTING 0
-
-#define tprint(...) if(TESTING) printf(__VA_ARGS__)
 
 // the default attribute propagation rule
 // sets the node's scope to the current scope (don't worry about this)
@@ -206,17 +203,12 @@ class Typecheck : public Visitor {
         // It returns the actual type of the symbol.
         Basetype get_ident_type(const char* name, char accepted_types, Attribute m_attribute)
         {
-            tprint("checking for symbolname %s, with types %d. The follow dump takes place before lookup...\n",name,accepted_types);
-            if(TESTING) m_st->dump(stderr);
             Symbol* s;
             s = m_st -> lookup(name);
-            //tprint("address pulled was %p\n",s);
             if ( s == NULL){
-                tprint("couldn't find s\n");
                 this -> t_error( sym_name_undef, m_attribute);
             }
             if ( !(s->m_basetype & accepted_types )){
-                tprint("mismatch. found type: %d, expected type %d, at addr %p\n",s->m_basetype,accepted_types,s);
                 this -> t_error( sym_type_mismatch, m_attribute); 
             }
             return s->m_basetype;

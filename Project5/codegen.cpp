@@ -6,9 +6,10 @@
 #include <stdio.h>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-#define TESTING 1
 #define FOLDING 0
 
+
+#define TESTING 1
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
@@ -342,7 +343,7 @@ class Codegen : public Visitor
                 mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s1->get_offset()+fFAfter);
             } else{
                 tprint("// Array index folded in ArrayCall!\n");
-                mpr("    movl %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
+                mpr("    movl %%eax, -%d(%%ebp)\n",s1->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
             }
             mpr("    add $%d, %%esp\n",dec);
         }

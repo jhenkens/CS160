@@ -1,9 +1,0 @@
-function int Main() {
-	var int a;
-    if(true){
-        if(true){
-            a = 5;
-        }
-    }
-    return 0;
-}

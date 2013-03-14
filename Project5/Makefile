@@ -8,7 +8,7 @@ ASTBUILD = ./astbuilder.gawk
 TARGET	= simple
 
 OBJS += lexer.o parser.o main.o ast.o primitive.o ast2dot.o symtab.o typecheck.o constantfolding.o codegen.o
-RMFILES = core.* lexer.cpp parser.cpp parser.hpp parser.output ast.hpp ast.cpp $(TARGET) $(OBJS)
+RMFILES = core.* lexer.cpp parser.cpp parser.hpp parser.output ast.hpp ast.cpp simple.s simple.o start start.o $(TARGET) $(OBJS)
 
 # dependencies
 $(TARGET): parser.cpp lexer.cpp parser.hpp $(OBJS)
