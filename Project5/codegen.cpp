@@ -9,7 +9,7 @@
 #define FOLDING 0
 
 
-#define TESTING 0
+#define TESTING 1
 #define DUMPING 0
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
@@ -170,30 +170,124 @@ class Codegen : public Visitor
         }
 
         // HERE: more functions to emit code
-        //
-        void emit_conditional(Expr* e1, Expr* e2, LatticeElem& lE, char* labelName, char* instr, int labelNum)
+        // Used inside binary expr to just handle the conditional part!
+        void emit_conditional(char* labelName, char* instr, int labelNum)
+        {
+            tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",labelName);
+            mpr("    cmp %%ebx, %%eax\n");
+            mpr("    %s %s%d\n",instr,labelName,labelNum);
+            mpr("    mov $0, %%eax\n");
+            mpr("    jmp %sDone%d\n",labelName,labelNum);
+            mpr("%s%d:\n",labelName,labelNum);
+            mpr("    mov $1, %%eax\n");
+            mpr("%sDone%d:\n",labelName,labelNum);
+        }
+
+        void emit_binary_expr(Expr* e1, Expr* e2, LatticeElem& lE, char op, char* desc)
         {
             if(!FOLDING || lE == TOP){
-                visit(e1);
-                visit(e2);
-                tprint("// %s. ebx==expr2, eax==expr1\n",labelName);
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",labelName);
-                mpr("    cmp %%ebx, %%eax\n");
-                mpr("    %s %s%d\n",instr,labelName,labelNum);
-                mpr("    mov $0, %%eax\n");
-                mpr("    jmp %sDone%d\n",labelName,labelNum);
-                mpr("%s%d:\n",labelName,labelNum);
-                mpr("    mov $1, %%eax\n");
-                mpr("%sDone%d:\n",labelName,labelNum);
+                LatticeElem& lEL = e1->m_attribute.m_lattice_elem;
+                LatticeElem& lER = e2->m_attribute.m_lattice_elem;
+                //lC = leftIsConstant, rC = rightIsConstant
+                bool lC = lEL != TOP;
+                bool rC = lER != TOP;
+
+                if(!FOLDING || !lC){
+                    visit(e1);
+                }
+                if(!FOLDING || !rC){
+                    visit(e2);
+                }
+                tprint("// Visit %s\n",desc);
+                //If not folding, or if the right is not constant
+                //Then pop. We do right first because if we aren't folding, or if
+                //both are non-constant, then we need to pop expr2 first.
+                if(!FOLDING || !rC ){
+                    mpr("    pop %%ebx\n");
+                } else{
+                    tprint("// Visit %s not folded, but right hand side did fold\n",desc);
+                    mpr("    mov $%d, %%ebx\n",lER.value);
+                }
+                if(!FOLDING || !lC){
+                    mpr("    pop %%eax\n");
+                } else{
+                    tprint("// Visit %s not folded, but left hand side did fold\n",desc);
+                    mpr("    mov $%d, %%eax\n",lEL.value);
+                }
+                switch(op){
+                    case '*':
+                        mpr("    imul %%ebx\n");
+                        break;
+                    case '/':
+                        mpr("    cdq\n");
+                        mpr("    idiv %%ebx\n");
+                        break;
+                    case '+':
+                        mpr("    add %%ebx, %%eax\n");
+                        break;
+                    case '-':
+                        mpr("    sub %%ebx, %%eax\n");
+                        break;
+                    case '&':
+                        mpr("    and %%ebx, %%eax\n");
+                        break;
+                    case '|':
+                        mpr("    or %%ebx, %%eax\n");
+                        break;
+                    case '<':
+                        emit_conditional(desc,"jl", new_label());
+                        break;
+                    case '>':
+                        emit_conditional(desc,"jg", new_label());
+                        break;
+                    // This is <=
+                    case '(':
+                        emit_conditional(desc,"jle", new_label());
+                        break;
+                    // This is >=
+                    case ')':
+                        emit_conditional(desc,"jge", new_label());
+                        break;
+                    case '=':
+                        emit_conditional(desc,"je", new_label());
+                        break;
+                    case '!':
+                        emit_conditional(desc,"jne", new_label());
+                        break;
+                    default:
+                        throw "Op not defined in emit_binary_expr!";
+                }
                 mpr("    push %%eax\n");
-                tprint("// Done with %s\n",labelName);
             } else{
-                tprint("// %s - FOLDED\n",labelName);
+                tprint("// %s - FOLDED\n",desc);
                 mpr("    mov $%d, %%eax\n",lE.value);
                 mpr("    push %%eax\n");
             }
+        }
+
+        void emit_non_folded_mov(int offset){
+            mpr("    mov %%eax, -%d(%%ebp)\n",offset+fFAfter);
+        }
+
+        void emit_folded_mov(int val, int offset){
+            mpr("    mov $%d, -%d(%%ebp)\n",val,offset+fFAfter);
+        }
+
+        int get_folded_array_offset(const char* str, Symbol* s, int index){
+            int result = s->get_offset() + (s->arr_length - 1 - index) * wordsize + fFAfter;
+            tprint("//Array index expr was folded!\n");
+            tprint("//Generated folded array offset (%s[%d] for %s is %d\n",str,index,str,result);
+            tprint("//Values used, offset: %d, wordsize: %d, arr_length: %d, index: %d\n",
+                s->get_offset(),wordsize,s->arr_length,index);
+            return result;
+        }
+
+        int get_non_folded_array_offset(const char* str, Symbol* s){
+            int result = s->get_offset() + (s->arr_length - 1) * wordsize + fFAfter;
+            tprint("//Generated array offset (%s[0]) for %s is %d\n",str,str,result);
+            tprint("//Values used, offset: %d, wordsize: %d, arr_length: %d\n",
+                s->get_offset(),wordsize,s->arr_length,index);
+            return result;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -226,6 +320,7 @@ class Codegen : public Visitor
             int scopeSize = m_st->scopesize(p->m_function_block->m_attribute.m_scope);
             int numParams = p->m_param_list->size();
             emit_prologue(p->m_symname,scopeSize-(wordsize*numParams),numParams);
+            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             visit(p->m_function_block);
             emit_epilogue();
         }
@@ -239,24 +334,38 @@ class Codegen : public Visitor
         }
         void visitAssignment(Assignment * p)
         {
-            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
+            const char* name = p->m_symname->spelling();
+            Symbol* s = m_st->lookup(p->m_attribute.m_scope,name);
             assert(s!=NULL);
-            tprint("// Visiting assign %s: pop off stack, then save to loc with offset %d\n",p->m_symname->spelling(),s->get_offset());
-            tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
-            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
+            Expr* expr = p->m_expr;
+            LatticeElem& lE = expr->m_attribute.m_lattice_elem;
+
+            tprint("// Visiting assign %s\n",name);
+            tprint("// Pop off stack, then save to loc with offset %d\n",s->get_offset());
+            if(!FOLDING || lE == TOP){
                 visit(p->m_expr);
                 mpr("    pop %%eax\n");
-                mpr("    mov %%eax, -%d(%%ebp)\n",s->get_offset()+fFAfter);
+                emit_non_folded_mov(s->get_offset());
             } else{
                 tprint("// Assign FOLDED!\n");
-                mpr("    movl $%d, -%d(%%ebp)\n",p->m_expr->m_attribute.m_lattice_elem.value,s->get_offset()+fFAfter);
+                emit_folded_mov(lE.value,s->get_offset());
             }
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
             tdump();
-            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
-            assert(s!=NULL);
+
+            const char* arr_name = p->m_symname->spelling();
+            Symbol* arr_s = m_st->lookup(p->m_attribute.m_scope,arr_name);
+            assert(arr_s!=NULL);
+            Expr* arr_index_expr = p->m_expr_1;
+            LatticeElem& arr_index_lE = arr_index_expr->m_attribute.m_lattice_elem;
+            bool arr_index_const = arr_index_lE != TOP;
+
+            Expr* val_expr = p->m_expr_2;
+            LatticeElem& val_lE = val_expr->m_attribute.m_lattice_elem;
+            bool val_const = val_lE != TOP;
+
             int startOfArray = s->get_offset() - 1*wordsize + s->arr_length*wordsize;
             if(!FOLDING || (p->m_expr_1->m_attribute.m_lattice_elem == TOP && p->m_expr_1->m_attribute.m_lattice_elem == TOP)){
                 visit(p->m_expr_1);
@@ -466,133 +575,65 @@ class Codegen : public Visitor
         // comparison operations
         void visitCompare(Compare * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "Compare", "je", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '=',"Compare");
         }
         void visitNoteq(Noteq * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "NotEq", "jne", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '!',"NotEq");
         }
         void visitGt(Gt * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "GreaterThan", "jg", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '>',"GreaterThan");
         }
         void visitGteq(Gteq * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "GreaterThanEq", "jge", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                ')',"GreaterThanEq");
         }
         void visitLt(Lt * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "LessThan", "jl", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '<',"LessThan");
         }
         void visitLteq(Lteq * p)
         {
-            emit_conditional(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
-                "LessThanEqual", "jle", new_label());
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '(',"LessThanEqual");
         }
 
         // arithmetic and logic operations
         void visitAnd(And * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// And\n");
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                mpr("    and %%ebx, %%eax\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// And - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '&',"And");
         }
         void visitOr(Or * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// Or\n");
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                mpr("    or %%ebx, %%eax\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// Or - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '|',"Or");
         }
         void visitMinus(Minus * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// Minus\n");
-                mpr("    pop %%ebx\n"); // expr2
-                mpr("    pop %%eax\n"); // expr1
-                // sub src dest -> dest = dest - src
-                mpr("    sub %%ebx, %%eax\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// Minus - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '-',"Minus");
         }
         void visitPlus(Plus * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// Plus\n");
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                mpr("    add %%ebx, %%eax\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// Plus - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '+',"Plus");
         }
         void visitTimes(Times * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// Times\n");
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                mpr("    imul %%ebx\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// Times - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '*',"Times");
         }
         void visitDiv(Div * p)
         {
-            if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr_1);
-                visit(p->m_expr_2);
-                tprint("// Div\n");
-                mpr("    pop %%ebx\n");
-                mpr("    pop %%eax\n");
-                mpr("    cdq\n");
-                mpr("    idiv %%ebx\n");
-                mpr("    push %%eax\n");
-            } else{
-                tprint("// Div - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
-            }
+            emit_binary_expr(p->m_expr_1,p->m_expr_2,p->m_attribute.m_lattice_elem,
+                '/',"Div");
         }
         void visitNot(Not * p)
         {
@@ -669,19 +710,22 @@ class Codegen : public Visitor
         }
         void visitArrayAccess(ArrayAccess * p)
         {
-            Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
-            assert(s!=NULL);
-            int startOfArray = s->get_offset() - 1*wordsize + s->arr_length*wordsize;
-            tprint("// ArrayAccess %s\n", p->m_symname->spelling());
-            tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
-            if( !FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
-                visit(p->m_expr);
+            const char* arr_name = p->m_symname->spelling();
+            Symbol* arr_s = m_st->lookup(p->m_attribute.m_scope,arr_name);
+            assert(arr_s!=NULL);
+            Expr* arr_index_expr = p->m_expr;
+            LatticeElem& arr_index_lE = arr_index_expr->m_attribute.m_lattice_elem;
+
+            tprint("// ArrayAccess %s\n", arr_name);
+            if( !FOLDING || arr_index_lE == TOP){
+                visit(arr_index_expr);
                 mpr("    pop %%ebx\n");
-                mpr("    mov -%d(%%ebp,%%ebx,%d), %%eax\n",startOfArray+fFAfter,wordsize);
+                mpr("    mov -%d(%%ebp,%%ebx,%d), %%eax\n",
+                    get_non_folded_array_offset(arr_name,arr_s),wordsize);
                 mpr("    push %%eax\n");
             } else{
-                tprint("// ArrayAccess was folded with index %d\n",p->m_expr->m_attribute.m_lattice_elem.value);
-                mpr("    mov -%d(%%ebp), %%eax\n",startOfArray+fFAfter-(p->m_expr->m_attribute.m_lattice_elem.value*wordsize));
+                mpr("    mov -%d(%%ebp), %%eax\n",
+                    get_folded_array_offset(arr_name,arr_s,arr_index_lE.value));
                 mpr("    push %%eax\n");
             }
             tprint("// End Array Access\n");
