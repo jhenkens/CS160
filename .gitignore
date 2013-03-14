@@ -8,7 +8,7 @@ xcuserdata
 */calc_def
 */calc
 Project2/parser.cpp
-
+Project5/copydir
 Project2/parser.hpp
 
 Project2/parser.output
@@ -20,3 +20,4 @@ Project2/lexer.cpp
 Project2/mytests/.DS_Store
 
 .DS_Store
+

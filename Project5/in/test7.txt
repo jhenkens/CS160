@@ -1,0 +1,6 @@
+function int Main(){
+    var int a;
+    a = 15;
+    a = a -(0-5)/(2-3)*2;
+    return a;
+}

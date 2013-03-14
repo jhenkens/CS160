@@ -1,0 +1,5 @@
+function int Main(){
+    var int a;
+    a=(-5)/-1;
+    return a;
+}
