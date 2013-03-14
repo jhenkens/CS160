@@ -307,24 +307,24 @@ class Codegen : public Visitor
 
         void emit_generic_array_assign_epilogue(const char* arr_name, bool arr_c,
             LatticeElem& arr_le, Symbol* arr_s, Expr* arr_expr, bool val_c,
-            LatticeElem& val_le,char* call = ""){
+            LatticeElem& val_le,bool isCall = false){
             if(!FOLDING || (!arr_c && !val_c)){
-                mpr("    pop %%eax\n");
+                if(!isCall) mpr("    pop %%eax\n");
                 mpr("    pop %%ebx\n");
                 mpr("    mov %%eax, -%d(%%ebp,%%ebx,%d)\n",
                     get_non_folded_array_offset(arr_name,arr_s),wordsize);
             } else if (arr_c && !val_c){
-                tprint("// Visit array%s assign index folded\n",call);
-                mpr("    pop %%eax\n");
+                tprint("// Visit array%s assign index folded\n",isCall?"Call ":"");
+                if(!isCall) mpr("    pop %%eax\n");
                 mpr("    mov %%eax, -%d(%%ebp)\n",
                     get_folded_array_offset(arr_name,arr_s,arr_le.value));
             } else if (!arr_c && val_c){
-                tprint("// Visit array%s assign value folded\n",call);
+                tprint("// Visit array%s assign value folded\n",isCall?"Call ":"");
                 mpr("    pop %%ebx\n");
                 mpr("    movl $%d, -%d(%%ebp,%%ebx,%d)\n", val_le.value,
                     get_non_folded_array_offset(arr_name,arr_s),wordsize);
             } else{
-                tprint("// Visit array%s assign completely folded\n",call);
+                tprint("// Visit array%s assign completely folded\n",isCall?"Call ":"");
                 mpr("    movl $%d, -%d(%%ebp)\n", val_le.value,
                     get_folded_array_offset(arr_name,arr_s,arr_le.value));
             }
@@ -479,12 +479,13 @@ class Codegen : public Visitor
 
             int argsBytes = emit_call("visitArrayCall",f,f_name,p->m_expr_list_2);
             tprint("// visitArrayCall: now we need to save eax to the array\n");
+            tprint("// Now we have to clean up stack from our arguments.\n");
+            tprint("// We do this before the assign so we can find ebx\n");
+            tprint("// We pushed %d bytes on\n",argsBytes);
+            mpr("    add $%d, %%esp\n",argsBytes);
             emit_generic_array_assign_epilogue(arr_name,arr_index_const,
                 arr_index_lE, arr_s, arr_index_expr, false,
-                arr_index_lE," call");
-
-            tprint("// Now we have to clean up stack from our arguments. We pushed %d bytes on\n",argsBytes);
-            mpr("    add $%d, %%esp\n",argsBytes);
+                arr_index_lE,true);
         }
 
         void visitReturn(Return * p)
@@ -552,17 +553,16 @@ class Codegen : public Visitor
         {
             if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP || p->m_expr->m_attribute.m_lattice_elem.value == 1){
                 int label = new_label();
-                int donelabel = new_label();
                 tprint("// While\n");
                 mpr("While%d:\n",label);
                 visit(p->m_expr);
                 mpr("    pop %%eax\n");
                 mpr("    cmp $1, %%eax\n");
                 tprint("// While:: Compare with 1, but jump if not equal\n");
-                mpr("    jne WhileDone%d\n",donelabel);
+                mpr("    jne WhileDone%d\n",label);
                 visit(p->m_nested_block);
                 mpr("    jmp While%d\n",label);
-                mpr("WhileDone%d:\n",donelabel);
+                mpr("WhileDone%d:\n",label);
                 tprint("// Done with While\n");
             } else {
                 tprint("// While - FOLDED to FALSE. Eliminated all code.\n");
