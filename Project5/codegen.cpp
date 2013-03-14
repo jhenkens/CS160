@@ -8,8 +8,10 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #define FOLDING 1
 
-
+#ifndef TESTING
 #define TESTING 1
+#endif
+
 #define DUMPING 0
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
@@ -17,7 +19,9 @@
 #define forallrev(iterator,listptr) \
     for(iterator = listptr->rbegin(); iterator != listptr->rend(); iterator++) \
 
+#ifndef tprint
 #define tprint(...) if(TESTING) printf(__VA_ARGS__)
+#endif
 #define tdump(...) if(DUMPING) m_st->dump(stdout)
 
 #define mpr(...) fprintf(m_outputfile,__VA_ARGS__)
