@@ -325,7 +325,7 @@ class Typecheck : public Visitor {
             // ASSERT right hand side matches that type
             Basetype r = p->m_expr->m_attribute.m_basetype;
             if ( l != r ){
-                t_error(sym_type_mismatch, p->m_attribute);
+                t_error(incompat_assign, p->m_attribute);
             }
             tprint("testout\n");
         }
@@ -344,7 +344,7 @@ class Typecheck : public Visitor {
             // ASSERT right hand side is an integer
             Basetype r = p->m_expr_2->m_attribute.m_basetype;
             if(r != bt_integer){
-                t_error(sym_type_mismatch, p->m_attribute);
+                t_error(incompat_assign, p->m_attribute);
             }
         }
 
