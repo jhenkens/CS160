@@ -637,6 +637,11 @@ class Typecheck : public Visitor {
         {
             set_scope_and_descend_into_children(p);
             // WRITEME
+            Basetype l = p->m_expr->m_attribute.m_basetype;
+            if( l!=bt_integer){
+                t_error(expr_type_err,p->m_attribute);
+            }
+            p -> m_attribute.m_basetype = bt_integer;
         }
 
         void visitIdent(Ident * p)

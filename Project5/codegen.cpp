@@ -400,6 +400,7 @@ class Codegen : public Visitor
                 tprint("// Assign FOLDED!\n");
                 emit_folded_mov(lE.value,s->get_offset());
             }
+            tprint("// Done with visit assign\n");
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
@@ -426,6 +427,7 @@ class Codegen : public Visitor
             emit_generic_array_assign_epilogue(arr_name,arr_index_const,
                 arr_index_lE, arr_s, arr_index_expr, val_const,
                 val_lE);
+            tprint("// Done with visit array assign\n");
         }
         void visitCall(Call * p)
         {
@@ -641,9 +643,16 @@ class Codegen : public Visitor
         {
             if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr);
+                // Sourced from http://www.pagetable.com/?p=13
                 tprint("// Not\n");
                 mpr("    pop %%eax\n");
-                mpr("    not %%eax\n");
+                // get the negative version of what is in eax
+                // This also sets carry flag to 0 if eax is 0, 1 otherwise
+                mpr("    neg %%eax\n");
+                // Perform (eax) - (eax+carryFlag). This gives us the value (- carry flag) inside eax.
+                mpr("    sbb %%eax, %%eax\n");
+                // Since carry flag is 0 if eax is 0, and 1 otherwise, we now have 0 -> 0. and 1 -> -1. So lets increment
+                mpr("    inc %%eax\n");
                 mpr("    push %%eax\n");
             } else{
                 tprint("// Not - FOLDED\n");
