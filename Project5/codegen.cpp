@@ -9,7 +9,8 @@
 #define FOLDING 0
 
 
-#define TESTING 1
+#define TESTING 0
+#define DUMPING 0
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 
@@ -17,6 +18,7 @@
     for(iterator = listptr->rbegin(); iterator != listptr->rend(); iterator++) \
 
 #define tprint(...) if(TESTING) printf(__VA_ARGS__)
+#define tdump(...) if(DUMPING) m_st->dump(stdout)
 
 #define mpr(...) fprintf(m_outputfile,__VA_ARGS__)
 
@@ -252,41 +254,48 @@ class Codegen : public Visitor
         }
         void visitArrayAssignment(ArrayAssignment * p)
         {
+            tdump();
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
+            int startOfArray = s->get_offset() - 1*wordsize + s->arr_length*wordsize;
             if(!FOLDING || (p->m_expr_1->m_attribute.m_lattice_elem == TOP && p->m_expr_1->m_attribute.m_lattice_elem == TOP)){
                 visit(p->m_expr_1);
                 visit(p->m_expr_2);
-                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Visiting array assign to %s",p->m_symname->spelling());
+                tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
+                tprint("// This is because the offset is the value of the last element in the array.\n");
                 tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
                 tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
                 mpr("    pop %%eax\n");
                 mpr("    pop %%ebx\n");
-                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,%d)\n",startOfArray+fFAfter,wordsize);
             } else if (p->m_expr_2->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_2);
-                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Visiting array assign to %s",p->m_symname->spelling());
+                tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
                 tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
                 tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
                 tprint("// Array Assign Expr1 folded!\n");
                 mpr("    pop %%eax\n");
                 mpr("    mov $%d, %%ebx\n",p->m_expr_1->m_attribute.m_lattice_elem.value);
-                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+                mpr("    mov %%eax, -%d(%%ebp)\n",startOfArray+fFAfter-(p->m_expr_1->m_attribute.m_lattice_elem.value*wordsize));
             } else if (p->m_expr_1->m_attribute.m_lattice_elem == TOP){
                 visit(p->m_expr_1);
-                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Visiting array assign to %s",p->m_symname->spelling());
+                tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
                 tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
                 tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
                 tprint("// Array Assign Expr2 folded!\n");
                 mpr("    pop %%ebx\n");
                 mpr("    mov $%d, %%eax\n",p->m_expr_2->m_attribute.m_lattice_elem.value);
-                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s->get_offset()+fFAfter);
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,%d)\n",startOfArray+fFAfter,wordsize);
             } else{
-                tprint("// Visiting array assign: pop off stack, then save to loc with offset %d\n",s->get_offset());
+                tprint("// Visiting array assign to %s",p->m_symname->spelling());
+                tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
                 tprint("// Second stack pop for for array index. a(b,c,d) == b+c*d+a\n");
                 tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
                 tprint("// Array Assign completely folded!\n");
-                mpr("    movl $%d, -%d(%%ebp)\n",p->m_expr_2->m_attribute.m_lattice_elem.value,s->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
+                mpr("    movl $%d, -%d(%%ebp)\n",p->m_expr_2->m_attribute.m_lattice_elem.value,startOfArray+fFAfter-(p->m_expr_1->m_attribute.m_lattice_elem.value*wordsize));
             }
 
         }
@@ -321,10 +330,13 @@ class Codegen : public Visitor
 
             Symbol* s1 = m_st->lookup(p->m_attribute.m_scope,p->m_symname_1->spelling());
             assert(s1!=NULL);
+            int startOfArray = s1->get_offset() - 1*wordsize + s1->arr_length*wordsize;
 
             list<Expr_ptr>::reverse_iterator exprItr;
             int dec = 0;
-            tprint("// visitArrayCallCall: %s\n",p->m_symname_2->spelling());
+            tprint("// visitArrayCallCall of function: %s\n",p->m_symname_2->spelling());
+            tprint("// Assigning array call to %s",p->m_symname_1->spelling());
+            tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s1->get_offset(),s1->arr_length,startOfArray);
             tprint("// Visiting call arguments. Each will be pushed onto stack in reverse order.\n");
             tprint("// reverse order is x86 calling convention, as per http://www.delorie.com/djgpp/doc/ug/asm/calling.html\n");
             forallrev(exprItr,p->m_expr_list_2){
@@ -340,18 +352,23 @@ class Codegen : public Visitor
             if(!folded){
                 tprint("// Array index is in ebx. It was not folded\n");
                 mpr("    pop %%ebx\n");
-                mpr("    mov %%eax, -%d(%%ebp,%%ebx,-4)\n",s1->get_offset()+fFAfter);
+                mpr("    mov %%eax, -%d(%%ebp,%%ebx,%d)\n",startOfArray+fFAfter,wordsize);
             } else{
                 tprint("// Array index folded in ArrayCall!\n");
-                mpr("    movl %%eax, -%d(%%ebp)\n",s1->get_offset()+fFAfter+(p->m_expr_1->m_attribute.m_lattice_elem.value*4));
+                mpr("    movl %%eax, -%d(%%ebp)\n",startOfArray+fFAfter-(p->m_expr_1->m_attribute.m_lattice_elem.value*wordsize));
             }
             mpr("    add $%d, %%esp\n",dec);
         }
         void visitReturn(Return * p)
         {   tprint("// Starting return statement\n");
-            visit_children_of(p);
-            tprint("// Finished the expr of return, now pop to eax\n");
-            mpr("    pop %%eax\n");
+            if(!FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                tprint("// Finished the expr of return, now pop to eax\n");
+                mpr("    pop %%eax\n");
+            } else{
+                tprint("// Return FOLDED!\n");
+                mpr("    movl $%d, %%eax\n",p->m_expr->m_attribute.m_lattice_elem.value);
+            }
             tprint("// End of return statement\n");
         }
 
@@ -652,15 +669,22 @@ class Codegen : public Visitor
         }
         void visitArrayAccess(ArrayAccess * p)
         {
-            tprint("// ArrayAccess %s\n", p->m_symname->spelling());
             Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
             assert(s!=NULL);
-            visit(p->m_expr);
-            mpr("    pop %%ebx\n");
-            mpr("    mov -%d(%%ebp,%%ebx,-4), %%eax\n",s->get_offset()+fFAfter);
-            mpr("    push %%eax\n");
+            int startOfArray = s->get_offset() - 1*wordsize + s->arr_length*wordsize;
+            tprint("// ArrayAccess %s\n", p->m_symname->spelling());
+            tprint("// Array has offset %d, but has %d elements. Thus, index of arr[0] is at offset: %d\n",s->get_offset(),s->arr_length,startOfArray);
+            if( !FOLDING || p->m_expr->m_attribute.m_lattice_elem == TOP){
+                visit(p->m_expr);
+                mpr("    pop %%ebx\n");
+                mpr("    mov -%d(%%ebp,%%ebx,%d), %%eax\n",startOfArray+fFAfter,wordsize);
+                mpr("    push %%eax\n");
+            } else{
+                tprint("// ArrayAccess was folded with index %d\n",p->m_expr->m_attribute.m_lattice_elem.value);
+                mpr("    mov -%d(%%ebp), %%eax\n",startOfArray+fFAfter-(p->m_expr->m_attribute.m_lattice_elem.value*wordsize));
+                mpr("    push %%eax\n");
+            }
             tprint("// End Array Access\n");
-            visit_children_of(p);
         }
 
         // special cases
