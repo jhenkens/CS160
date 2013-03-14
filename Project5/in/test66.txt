@@ -1,0 +1,19 @@
+[$ Let's start getting funkkaayy $]
+function bool Khil(int a){
+    return a < 1337;
+}
+
+function int Main(){
+    var int a;
+    var bool b;
+    a = 5;
+    while( a != -1){
+        a = -1 ;
+    }
+    b = Khil(a);
+    if(b){
+        a = 5;
+    }
+    return a;
+}
+
