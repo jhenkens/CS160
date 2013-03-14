@@ -232,20 +232,22 @@ class ConstantFolding : public CFVisitor {
         LatticeElemMap* visitIfNoElse(IfNoElse *p, LatticeElemMap *in)
         {
             in = visit(p->m_expr, in);
+            if(p->m_expr->m_attribute.m_lattice_elem == TOP || 
+                p->m_expr->m_attribute.m_lattice_elem == 1){
+                // Copy this lattice elem map into another
+                LatticeElemMap* clone = new LatticeElemMap(*in);
 
-            // Copy this lattice elem map into another
-            LatticeElemMap* clone = new LatticeElemMap(*in);
+                // Visit the block using this clone
+                clone = visit(p->m_nested_block, clone);
 
-            // Visit the block using this clone
-            clone = visit(p->m_nested_block, clone);
+                // Join the original "in" lattice_elem_map with the clone,
+                // storing the result in the clone
+                join_lattice_elem_maps(clone, in);
 
-            // Join the original "in" lattice_elem_map with the clone,
-            // storing the result in the clone
-            join_lattice_elem_maps(clone, in);
-
-            // Make "in" point to the clone, deleting in
-            delete in;
-            in = clone;
+                // Make "in" point to the clone, deleting in
+                delete in;
+                in = clone;
+            }
             return in;
         }
 
@@ -253,19 +255,25 @@ class ConstantFolding : public CFVisitor {
         {
             in = visit(p->m_expr, in);
 
-            // Copy this lattice elem map into another
-            LatticeElemMap* clone = new LatticeElemMap(*in);
+            if(p->m_expr->m_attribute.m_lattice_elem == TOP){
+                // Copy this lattice elem map into another
+                LatticeElemMap* clone = new LatticeElemMap(*in);
 
-            // Visit the block using this clone
-            clone = visit(p->m_nested_block_1, clone);
-            in = visit(p->m_nested_block_2,in);
-            // Join the original "in" lattice_elem_map with the clone,
-            // storing the result in the clone
-            join_lattice_elem_maps(clone, in);
+                // Visit the block using this clone
+                clone = visit(p->m_nested_block_1, clone);
+                in = visit(p->m_nested_block_2,in);
+                // Join the original "in" lattice_elem_map with the clone,
+                // storing the result in the clone
+                join_lattice_elem_maps(clone, in);
 
-            // Make "in" point to the clone, deleting in
-            delete in;
-            in = clone;
+                // Make "in" point to the clone, deleting in
+                delete in;
+                in = clone;
+            } else if (p->m_expr->m_attribute.m_lattice_elem == 1){
+                in = visit(p->m_nested_block_1,in);
+            } else{
+                in = visit(p->m_nested_block_2,in);
+            }
             return in;
         }
 
