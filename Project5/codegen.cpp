@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-#define FOLDING 0
+#define FOLDING 1
 
 
 #define TESTING 1
@@ -270,7 +270,7 @@ class Codegen : public Visitor
         }
 
         void emit_folded_mov(int val, int offset){
-            mpr("    mov $%d, -%d(%%ebp)\n",val,offset+fFAfter);
+            mpr("    movl $%d, -%d(%%ebp)\n",val,offset+fFAfter);
         }
 
         int get_folded_array_offset(const char* str, Symbol* s, int index){
@@ -298,12 +298,12 @@ class Codegen : public Visitor
                 mpr("    pop %%ebx\n");
                 mpr("    mov %%eax, -%d(%%ebp,%%ebx,%d)\n",
                     get_non_folded_array_offset(arr_name,arr_s),wordsize);
-            } else if (arr_c){
+            } else if (arr_c && !val_c){
                 tprint("// Visit array%s assign index folded\n",call);
                 mpr("    pop %%eax\n");
                 mpr("    mov %%eax, -%d(%%ebp)\n",
                     get_folded_array_offset(arr_name,arr_s,arr_le.value));
-            } else if (val_c){
+            } else if (!arr_c && val_c){
                 tprint("// Visit array%s assign value folded\n",call);
                 mpr("    pop %%ebx\n");
                 mpr("    movl $%d, -%d(%%ebp,%%ebx,%d)\n", val_le.value,
