@@ -289,6 +289,10 @@ class ConstantFolding : public CFVisitor {
 
             // So first, visit the expression.
             in = visit(p->m_expr, in);
+            if(p->m_expr->m_attribute.m_lattice_elem!=TOP &&
+                p->m_expr->m_attribute.m_lattice_elem == 0){
+                return in;
+            }
 
             // And then, as many times as needed,
             while(true) {
