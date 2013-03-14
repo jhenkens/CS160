@@ -1,0 +1,33 @@
+[$ Let's start getting funkkaayy $]
+function int Khil(int a){
+    var int b;
+    if( a != 1342){
+        b = 0;
+    } else{
+        if( -a != 5){
+            a=0;
+            b=-5;
+        }
+    }
+    return a - b;
+}
+
+function bool Stupid(bool b){
+    return b;
+}
+
+function int Main(){
+    var intarray[1] a;
+    var bool b;
+    a[0] = -1;
+    b = a[0] < 5;
+    b = Stupid(b);
+    while( b ){
+        a[0] = 1337+5 ;
+        b = a[0] < 5;
+        b = Stupid(b);
+    }
+    a[0] = Khil(a[0]);
+    return a[0];
+}
+
