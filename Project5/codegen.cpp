@@ -6,13 +6,24 @@
 #include <stdio.h>
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
+#ifdef NOFOLDING
+#define FOLDING 0
+#else
 #define FOLDING 1
-
-#ifndef TESTING
-#define TESTING 1
 #endif
 
+#ifdef TESTING
+#define TESTING 1
+#else
+#define TESTING 0
+#endif
+
+#ifdef DUMPING
+#define DUMPING 1
+#else
 #define DUMPING 0
+#endif
+
 #define forall(iterator,listptr) \
     for(iterator = listptr->begin(); iterator != listptr->end(); iterator++) \
 

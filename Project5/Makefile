@@ -12,14 +12,15 @@ RMFILES = core.* lexer.cpp parser.cpp parser.hpp parser.output ast.hpp ast.cpp s
 
 # dependencies
 $(TARGET): parser.cpp lexer.cpp parser.hpp $(OBJS)
-	$(CPP) -o $(TARGET) $(OBJS)
+	echo $(CPPFLAGS)
+	$(CPP) -o $(TARGET) $(OBJS) $(CPPFLAGS)
 
 # rules
 %.cpp: %.ypp
 	$(YACC) -o $(@:%.o=%.d) $<
 
 %.o: %.cpp
-	$(CPP) -o $@ -c $<
+	$(CPP) -o $@ -c $< $(CPPFLAGS)
 
 %.cpp: %.l
 	$(LEX) -o$(@:%.o=%.d)  $<
