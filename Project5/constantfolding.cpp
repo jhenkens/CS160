@@ -315,7 +315,7 @@ class ConstantFolding : public CFVisitor {
                 // If the clone was the same as "in", meaning that we've reached a fix-point,
                 // we're done!
                 if (equal)
-                    return in;
+                    return visit(p->m_expr,in);
             }
         }
 
