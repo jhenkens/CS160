@@ -458,7 +458,8 @@ class Codegen : public Visitor
             tprint("// Call assign: save eax to loc with offset %d\n",var_s->get_offset());
             emit_non_folded_mov(var_s->get_offset());
             tprint("// Now we have to clean up stack from our arguments. We pushed %d bytes on\n",argsBytes);
-            mpr("    add $%d, %%esp\n",argsBytes);
+            if(argsBytes>0) mpr("    add $%d, %%esp\n",argsBytes);
+            else tprint("// No cleanup needed as argsBytes == 0\n");
         }
         void visitArrayCall(ArrayCall *p)
         {
@@ -482,7 +483,8 @@ class Codegen : public Visitor
             tprint("// Now we have to clean up stack from our arguments.\n");
             tprint("// We do this before the assign so we can find ebx\n");
             tprint("// We pushed %d bytes on\n",argsBytes);
-            mpr("    add $%d, %%esp\n",argsBytes);
+            if(argsBytes>0) mpr("    add $%d, %%esp\n",argsBytes);
+            else tprint("// No cleanup needed as argsBytes == 0\n");
             emit_generic_array_assign_epilogue(arr_name,arr_index_const,
                 arr_index_lE, arr_s, arr_index_expr, false,
                 arr_index_lE,true);
