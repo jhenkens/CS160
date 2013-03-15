@@ -301,7 +301,7 @@ class Codegen : public Visitor
             int result = s->get_offset() + (s->arr_length - 1) * wordsize + fFAfter;
             tprint("//Generated array offset (%s[0]) for %s is %d\n",str,str,result);
             tprint("//Values used, offset: %d, wordsize: %d, arr_length: %d\n",
-                s->get_offset(),wordsize,s->arr_length,index);
+                s->get_offset(),wordsize,s->arr_length);
             return result;
         }
 
