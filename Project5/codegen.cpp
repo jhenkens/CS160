@@ -140,7 +140,7 @@ class Codegen : public Visitor
         //
         //////////////////////////////////////////////////////////////////////////////
 
-        void emit_prologue(SymName *name, unsigned int size_locals, unsigned int num_args)
+        int emit_prologue(SymName *name, unsigned int size_locals, unsigned int num_args)
         {
             tprint("// Function %s, with %d bytes of locals, and %d args\n",name->spelling(),size_locals,num_args);
             if(strcmp("Main",name->spelling())==0){
@@ -154,6 +154,7 @@ class Codegen : public Visitor
             mpr("    push %%ebx\n");
             mpr("    push %%esi\n");
             mpr("    push %%edi\n");
+            int stackSpace = 0;
             if(num_args>0){
                 tprint("// Copy function args to local space. Saved regs + return addr take up %d space before %%ebp\n",fFBefore);
                 int offset = fFBefore;
@@ -163,19 +164,23 @@ class Codegen : public Visitor
                     mpr("    push %%eax\n");
                     offset+=wordsize;
                     num_args--;
+                    stackSpace+=wordsize;
                 }
                 tprint("// Done copying function args\n");
             }
             if(size_locals>0){
                 tprint("// Decrement the stack pointer to make space for locals\n");
                 mpr("    sub $%d, %%esp\n",size_locals);
+                stackSpace+=size_locals;
             }
+            return stackSpace;
         }
 
-        void emit_epilogue()
+        void emit_epilogue(int stackSpace)
         {
             tprint("// Starting function epilogue. Pop the three basic regs\n");
             tprint("// Then call leave, which does mov ebp esp, then pop ebp, then ret\n");
+            if(stackSpace>0) mpr("    add $%d, %%esp\n",stackSpace);
             mpr("    pop %%edi\n");
             mpr("    pop %%esi\n");
             mpr("    pop %%ebx\n");
@@ -384,10 +389,10 @@ class Codegen : public Visitor
         {
             int scopeSize = m_st->scopesize(p->m_function_block->m_attribute.m_scope);
             int numParams = p->m_param_list->size();
-            emit_prologue(p->m_symname,scopeSize-(wordsize*numParams),numParams);
+            int stackSpace = emit_prologue(p->m_symname,scopeSize-(wordsize*numParams),numParams);
             tprint("// There are %d bytes after ebp used for storing caller regs\n",fFAfter);
             visit(p->m_function_block);
-            emit_epilogue();
+            emit_epilogue(stackSpace);
         }
         void visitFunction_block(Function_block * p)
         {
