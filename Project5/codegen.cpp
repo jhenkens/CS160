@@ -342,13 +342,7 @@ class Codegen : public Visitor
             tprint("// Visiting args. Each will be pushed onto stack in reverse order.\n");
             tprint("// reverse order is x86 calling convention, as per http://www.delorie.com/djgpp/doc/ug/asm/calling.html\n");
             forallrev(exprItr,expr_list){
-                LatticeElem& lE = (*exprItr)->m_attribute.m_lattice_elem;
-                if(lE!=TOP){
-                    tprint("// %s: folding parameter %d\n",callType,count);
-                    mpr("    mov $%d, %%eax\n", lE.value);
-                } else{
-                    visit((*exprItr));
-                }
+                visit((*exprItr));
                 count++;
                 dec+=wordsize;
             }
