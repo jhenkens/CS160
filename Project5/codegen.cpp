@@ -279,9 +279,7 @@ class Codegen : public Visitor
                 }
                 mpr("    push %%eax\n");
             } else{
-                tprint("// %s - FOLDED\n",desc);
-                mpr("    mov $%d, %%eax\n",lE.value);
-                mpr("    push %%eax\n");
+                emit_integer_push(desc,lE.value," - FOLDED");
             }
         }
 
@@ -358,6 +356,16 @@ class Codegen : public Visitor
             mpr("    call %s\n",f_name);
             tprint("// After call, result is in eax\n");
             return dec;
+        }
+
+        void emit_integer_push(const char* str, int val, const char* str2 = ""){
+            tprint("//  %s%s int push( %d ) \n",str,str2,val);
+            mpr("    pushl $%d\n",val);
+        }
+
+        void emit_memory_push(const char* str, int val, const char* str2 = ""){
+            tprint("//  %s%s  Memory push offset( %d ) \n",str,str2,val);
+            mpr("    pushl -%d(%%ebp)\n",val);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -677,9 +685,7 @@ class Codegen : public Visitor
                 mpr("    inc %%eax\n");
                 mpr("    push %%eax\n");
             } else{
-                tprint("// Not - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
+                emit_integer_push("Not - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
         }
         void visitUminus(Uminus * p)
@@ -691,9 +697,7 @@ class Codegen : public Visitor
                 mpr("    neg %%eax\n");
                 mpr("    push %%eax\n");
             } else{
-                tprint("// Uminus - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
+                emit_integer_push("Uminus - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
         }
         void visitMagnitude(Magnitude * p)
@@ -708,9 +712,7 @@ class Codegen : public Visitor
                 mpr("    cmovl %%ebx, %%eax\n");
                 mpr("    push %%eax\n");
             } else{
-                tprint("// Magnitude - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
+                emit_integer_push("Magnitude - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
         }
 
@@ -720,26 +722,19 @@ class Codegen : public Visitor
             if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
                 Symbol* s = m_st->lookup(p->m_attribute.m_scope,p->m_symname->spelling());
                 assert(s!=NULL);
-                tprint("// Ident %s\n",p->m_symname->spelling());
-                mpr("    mov -%d(%%ebp), %%eax\n",s->get_offset()+fFAfter);
-                mpr("    push %%eax\n");
+                emit_memory_push("Ident ",s->get_offset()+fFAfter, p->m_symname->spelling());
             } else{
-                tprint("// Ident - FOLDED\n");
-                mpr("    mov $%d, %%eax\n",p->m_attribute.m_lattice_elem.value);
-                mpr("    push %%eax\n");
+                emit_integer_push("Ident - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
         }
         void visitIntLit(IntLit * p)
         {
-            tprint("// IntLit(%d)\n",p->m_primitive->m_data);
-            mpr("    movl $%d, %%eax\n",p->m_primitive->m_data);
-            mpr("    push %%eax\n");
+            emit_integer_push("IntLit",p->m_attribute.m_lattice_elem.value);
         }
         void visitBoolLit(BoolLit * p)
         {
-            tprint("// BoolLit(%d)\n",p->m_primitive->m_data);
-            mpr("    movl $%d, %%eax\n",p->m_primitive->m_data);
-            mpr("    push %%eax\n");
+            emit_integer_push("IntLit",p->m_attribute.m_lattice_elem.value);
+
         }
         void visitArrayAccess(ArrayAccess * p)
         {
@@ -753,13 +748,10 @@ class Codegen : public Visitor
             if( !FOLDING || arr_index_lE == TOP){
                 visit(arr_index_expr);
                 mpr("    pop %%ebx\n");
-                mpr("    mov -%d(%%ebp,%%ebx,%d), %%eax\n",
+                mpr("    pushl -%d(%%ebp,%%ebx,%d)\n",
                     get_non_folded_array_offset(arr_name,arr_s),wordsize);
-                mpr("    push %%eax\n");
             } else{
-                mpr("    mov -%d(%%ebp), %%eax\n",
-                    get_folded_array_offset(arr_name,arr_s,arr_index_lE.value));
-                mpr("    push %%eax\n");
+                emit_memory_push("ArrayAccess - Folded",get_folded_array_offset(arr_name,arr_s,arr_index_lE.value));
             }
             tprint("// End Array Access\n");
         }
