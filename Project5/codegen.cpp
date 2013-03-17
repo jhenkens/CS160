@@ -160,8 +160,7 @@ class Codegen : public Visitor
                 int offset = fFBefore;
                 while(num_args>0){
                     tprint("// Copying arg to local: offset %d\n",offset);
-                    mpr("    mov %d(%%ebp), %%eax\n",offset);
-                    mpr("    push %%eax\n");
+                    mpr("    pushl %d(%%ebp)\n",offset);
                     offset+=wordsize;
                     num_args--;
                     stackSpace+=wordsize;

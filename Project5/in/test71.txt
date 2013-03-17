@@ -1,5 +1,11 @@
 [$ Let's start getting funkkaayy $]
 function int Khil(int a, int b){
+    if(a!=6){
+        a = 100000;
+    } 
+    if(b!=-1){
+        b = -500;
+    }
     return a+b;
 }
 
