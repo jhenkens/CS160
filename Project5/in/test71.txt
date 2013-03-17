@@ -1,0 +1,19 @@
+[$ Let's start getting funkkaayy $]
+function int Khil(int a, int b){
+    return a+b;
+}
+
+function int Main(){
+    var intarray[3] a;
+    var int zero;
+    zero = 0;
+    a[zero] = 0; [$ right constant $]
+    a[1] = zero+1; [$ left cosntant $]
+    a[zero] = zero+5; [$neither $]
+    a[2] = 3; [$ both $]
+    zero = a[0] + a[1]+ a[2];
+    zero = Khil(6,-1);
+    return zero ; [$ should be 5 $]
+}
+
+
