@@ -12,8 +12,8 @@ for file in in/*; do
     gcc -m32 -c -o start.o start.c &&\
     gcc -m32 -o start start.o simple.o)
     then
-        echo "Failed to build"
-        exit 6
+        echo "Failed to build for test $file"
+        exit 5
     fi
     if ! ./start | cmp - out/$(basename $file)
     then
@@ -35,7 +35,7 @@ for file in in/*; do
     gcc -m32 -c -o start.o start.c &&\
     gcc -m32 -o start start.o simple.o)
     then
-        echo "Failed to build"
+        echo "Failed to build for test $file"
         exit 6
     fi
     if ! ./start | cmp - out/$(basename $file)
