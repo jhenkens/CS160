@@ -7,10 +7,14 @@ then
 fi
 echo "Testing folding..."
 for file in in/*; do
-    ./simple < $file > simple.s
-    gcc -m32 -c -o simple.o simple.s
-    gcc -m32 -c -o start.o start.c
-    gcc -m32 -o start start.o simple.o
+    if ! $(./simple < $file > simple.s &&\
+    gcc -m32 -c -o simple.o simple.s &&\
+    gcc -m32 -c -o start.o start.c &&\
+    gcc -m32 -o start start.o simple.o)
+    then
+        echo "Failed to build"
+        exit 6
+    fi
     if ! ./start | cmp - out/$(basename $file)
     then
         echo "Expected and output differ for test $file"
@@ -26,10 +30,14 @@ then
 fi
 echo "Testing non-folded..."
 for file in in/*; do
-    ./simple < $file > simple.s
-    gcc -m32 -c -o simple.o simple.s
-    gcc -m32 -c -o start.o start.c
-    gcc -m32 -o start start.o simple.o
+    if ! $(./simple < $file > simple.s &&\
+    gcc -m32 -c -o simple.o simple.s &&\
+    gcc -m32 -c -o start.o start.c &&\
+    gcc -m32 -o start start.o simple.o)
+    then
+        echo "Failed to build"
+        exit 6
+    fi
     if ! ./start | cmp - out/$(basename $file)
     then
         echo "Expected and output differ for test $file"
