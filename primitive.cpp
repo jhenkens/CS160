@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <string.h>
 #include <stdio.h>
-#include "primitive.hpp"
+#include "primitive.h"
 
 Primitive::Primitive(int x)
 {

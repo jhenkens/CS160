@@ -1,8 +1,8 @@
 #ifndef PRIMITIVE_HPP
 #define PRIMITIVE_HPP
 
-#include "ast.hpp"
-#include "attribute.hpp"
+#include "ast.h"
+#include "attribute.h"
 
 class Primitive
 {

@@ -1,7 +1,7 @@
 #include <iostream>
-#include "ast.hpp"
-#include "symtab.hpp"
-#include "primitive.hpp"
+#include "ast.h"
+#include "symtab.h"
+#include "primitive.h"
 #include "assert.h"
 
 

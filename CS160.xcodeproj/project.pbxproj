@@ -6,24 +6,53 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D4F1D2201705328200BF2C9A /* CS160.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = D4F1D21F1705328200BF2C9A /* CS160.1 */; };
+		D4F1D2341705330B00BF2C9A /* ast2dot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D2271705330B00BF2C9A /* ast2dot.cpp */; };
+		D4F1D2351705330B00BF2C9A /* codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D22A1705330B00BF2C9A /* codegen.cpp */; };
+		D4F1D2361705330B00BF2C9A /* constantfolding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D22B1705330B00BF2C9A /* constantfolding.cpp */; };
+		D4F1D2371705330B00BF2C9A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D22C1705330B00BF2C9A /* main.cpp */; };
+		D4F1D2381705330B00BF2C9A /* parser.ypp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D22D1705330B00BF2C9A /* parser.ypp */; };
+		D4F1D2391705330B00BF2C9A /* primitive.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D22E1705330B00BF2C9A /* primitive.cpp */; };
+		D4F1D23B1705330B00BF2C9A /* symtab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D2311705330B00BF2C9A /* symtab.cpp */; };
+		D4F1D23C1705330B00BF2C9A /* typecheck.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D2331705330B00BF2C9A /* typecheck.cpp */; };
+		D4F1D23E1705338D00BF2C9A /* lexer.lpp in Sources */ = {isa = PBXBuildFile; fileRef = D4F1D23D1705338D00BF2C9A /* lexer.lpp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		D4FC75A916A4B302006525E8 /* CopyFiles */ = {
+		D4F1D2181705328200BF2C9A /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
+				D4F1D2201705328200BF2C9A /* CS160.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D4FC75AB16A4B302006525E8 /* CS160 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS160; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4F1D21A1705328200BF2C9A /* CS160 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS160; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4F1D21F1705328200BF2C9A /* CS160.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = CS160.1; sourceTree = "<group>"; };
+		D4F1D2261705330B00BF2C9A /* ast.cdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ast.cdef; sourceTree = "<group>"; };
+		D4F1D2271705330B00BF2C9A /* ast2dot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast2dot.cpp; sourceTree = "<group>"; };
+		D4F1D2281705330B00BF2C9A /* astbuilder.gawk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = astbuilder.gawk; sourceTree = "<group>"; };
+		D4F1D2291705330B00BF2C9A /* attribute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = attribute.h; sourceTree = "<group>"; };
+		D4F1D22A1705330B00BF2C9A /* codegen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = codegen.cpp; sourceTree = "<group>"; };
+		D4F1D22B1705330B00BF2C9A /* constantfolding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = constantfolding.cpp; sourceTree = "<group>"; };
+		D4F1D22C1705330B00BF2C9A /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		D4F1D22D1705330B00BF2C9A /* parser.ypp */ = {isa = PBXFileReference; explicitFileType = sourcecode.yacc; fileEncoding = 4; path = parser.ypp; sourceTree = "<group>"; };
+		D4F1D22E1705330B00BF2C9A /* primitive.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = primitive.cpp; sourceTree = "<group>"; };
+		D4F1D22F1705330B00BF2C9A /* primitive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = primitive.h; sourceTree = "<group>"; };
+		D4F1D2311705330B00BF2C9A /* symtab.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = symtab.cpp; sourceTree = "<group>"; };
+		D4F1D2321705330B00BF2C9A /* symtab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = symtab.h; sourceTree = "<group>"; };
+		D4F1D2331705330B00BF2C9A /* typecheck.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = typecheck.cpp; sourceTree = "<group>"; };
+		D4F1D23D1705338D00BF2C9A /* lexer.lpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = lexer.lpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D4FC75A816A4B302006525E8 /* Frameworks */ = {
+		D4F1D2171705328200BF2C9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,31 +62,55 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D4FC75A016A4B302006525E8 = {
+		D4F1D2111705328200BF2C9A = {
 			isa = PBXGroup;
 			children = (
-				D4FC75AC16A4B302006525E8 /* Products */,
+				D4F1D2261705330B00BF2C9A /* ast.cdef */,
+				D4F1D2271705330B00BF2C9A /* ast2dot.cpp */,
+				D4F1D2281705330B00BF2C9A /* astbuilder.gawk */,
+				D4F1D2291705330B00BF2C9A /* attribute.h */,
+				D4F1D22A1705330B00BF2C9A /* codegen.cpp */,
+				D4F1D22B1705330B00BF2C9A /* constantfolding.cpp */,
+				D4F1D23D1705338D00BF2C9A /* lexer.lpp */,
+				D4F1D22C1705330B00BF2C9A /* main.cpp */,
+				D4F1D22D1705330B00BF2C9A /* parser.ypp */,
+				D4F1D22E1705330B00BF2C9A /* primitive.cpp */,
+				D4F1D22F1705330B00BF2C9A /* primitive.h */,
+				D4F1D2311705330B00BF2C9A /* symtab.cpp */,
+				D4F1D2321705330B00BF2C9A /* symtab.h */,
+				D4F1D2331705330B00BF2C9A /* typecheck.cpp */,
+				D4F1D21C1705328200BF2C9A /* CS160 */,
+				D4F1D21B1705328200BF2C9A /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		D4FC75AC16A4B302006525E8 /* Products */ = {
+		D4F1D21B1705328200BF2C9A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D4FC75AB16A4B302006525E8 /* CS160 */,
+				D4F1D21A1705328200BF2C9A /* CS160 */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D4F1D21C1705328200BF2C9A /* CS160 */ = {
+			isa = PBXGroup;
+			children = (
+				D4F1D21F1705328200BF2C9A /* CS160.1 */,
+			);
+			path = CS160;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D4FC75AA16A4B302006525E8 /* CS160 */ = {
+		D4F1D2191705328200BF2C9A /* CS160 */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D4FC75B516A4B302006525E8 /* Build configuration list for PBXNativeTarget "CS160" */;
+			buildConfigurationList = D4F1D2231705328200BF2C9A /* Build configuration list for PBXNativeTarget "CS160" */;
 			buildPhases = (
-				D4FC75A716A4B302006525E8 /* Sources */,
-				D4FC75A816A4B302006525E8 /* Frameworks */,
-				D4FC75A916A4B302006525E8 /* CopyFiles */,
+				D4F1D242170539E600BF2C9A /* ShellScript */,
+				D4F1D2161705328200BF2C9A /* Sources */,
+				D4F1D2171705328200BF2C9A /* Frameworks */,
+				D4F1D2181705328200BF2C9A /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -65,47 +118,75 @@
 			);
 			name = CS160;
 			productName = CS160;
-			productReference = D4FC75AB16A4B302006525E8 /* CS160 */;
+			productReference = D4F1D21A1705328200BF2C9A /* CS160 */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D4FC75A216A4B302006525E8 /* Project object */ = {
+		D4F1D2121705328200BF2C9A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Johan Henkens";
 			};
-			buildConfigurationList = D4FC75A516A4B302006525E8 /* Build configuration list for PBXProject "CS160" */;
+			buildConfigurationList = D4F1D2151705328200BF2C9A /* Build configuration list for PBXProject "CS160" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = D4FC75A016A4B302006525E8;
-			productRefGroup = D4FC75AC16A4B302006525E8 /* Products */;
+			mainGroup = D4F1D2111705328200BF2C9A;
+			productRefGroup = D4F1D21B1705328200BF2C9A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D4FC75AA16A4B302006525E8 /* CS160 */,
+				D4F1D2191705328200BF2C9A /* CS160 */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D4F1D242170539E600BF2C9A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/ast.cdef",
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/ast.h",
+				"$(DERIVED_FILE_DIR)/ast.cpp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "printenv > ~/env.txt\n./astbuilder.gawk -v outtype=h -v outfile=$DERIVED_FILE_DIR/ast.h < $SRCROOT/ast.cdef\n./astbuilder.gawk -v outtype=cpp -v outfile=$DERIVED_FILE_DIR/ast.cpp < $SRCROOT/ast.cdef";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		D4FC75A716A4B302006525E8 /* Sources */ = {
+		D4F1D2161705328200BF2C9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4F1D2341705330B00BF2C9A /* ast2dot.cpp in Sources */,
+				D4F1D2351705330B00BF2C9A /* codegen.cpp in Sources */,
+				D4F1D2361705330B00BF2C9A /* constantfolding.cpp in Sources */,
+				D4F1D2371705330B00BF2C9A /* main.cpp in Sources */,
+				D4F1D2381705330B00BF2C9A /* parser.ypp in Sources */,
+				D4F1D2391705330B00BF2C9A /* primitive.cpp in Sources */,
+				D4F1D23B1705330B00BF2C9A /* symtab.cpp in Sources */,
+				D4F1D23C1705330B00BF2C9A /* typecheck.cpp in Sources */,
+				D4F1D23E1705338D00BF2C9A /* lexer.lpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		D4FC75B316A4B302006525E8 /* Debug */ = {
+		D4F1D2211705328200BF2C9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -113,7 +194,10 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -135,7 +219,7 @@
 			};
 			name = Debug;
 		};
-		D4FC75B416A4B302006525E8 /* Release */ = {
+		D4F1D2221705328200BF2C9A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -143,10 +227,12 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -158,41 +244,54 @@
 			};
 			name = Release;
 		};
-		D4FC75B616A4B302006525E8 /* Debug */ = {
+		D4F1D2241705328200BF2C9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				GCC_VERSION = "";
+				LEXFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
+				YACCFLAGS = "-v -d";
 			};
 			name = Debug;
 		};
-		D4FC75B716A4B302006525E8 /* Release */ = {
+		D4F1D2251705328200BF2C9A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libstdc++";
+				GCC_VERSION = "";
+				LEXFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
+				YACCFLAGS = "-v -d";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D4FC75A516A4B302006525E8 /* Build configuration list for PBXProject "CS160" */ = {
+		D4F1D2151705328200BF2C9A /* Build configuration list for PBXProject "CS160" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D4FC75B316A4B302006525E8 /* Debug */,
-				D4FC75B416A4B302006525E8 /* Release */,
+				D4F1D2211705328200BF2C9A /* Debug */,
+				D4F1D2221705328200BF2C9A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D4FC75B516A4B302006525E8 /* Build configuration list for PBXNativeTarget "CS160" */ = {
+		D4F1D2231705328200BF2C9A /* Build configuration list for PBXNativeTarget "CS160" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D4FC75B616A4B302006525E8 /* Debug */,
-				D4FC75B716A4B302006525E8 /* Release */,
+				D4F1D2241705328200BF2C9A /* Debug */,
+				D4F1D2251705328200BF2C9A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D4FC75A216A4B302006525E8 /* Project object */;
+	rootObject = D4F1D2121705328200BF2C9A /* Project object */;
 }

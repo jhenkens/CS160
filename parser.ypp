@@ -2,9 +2,9 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 
-    	#include "ast.hpp"
-    	#include "primitive.hpp"
-    	#include "symtab.hpp"
+    	#include "ast.h"
+    	#include "primitive.h"
+    	#include "symtab.h"
 
 	#define YYDEBUG 1
 

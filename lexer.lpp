@@ -4,8 +4,8 @@
 %{
 #include <stdlib.h>
 #include <string.h>
-#include "ast.hpp"
-#include "parser.hpp"
+#include "ast.h"
+#include "y.tab.h"
 
 void yyerror(const char *);
 

@@ -1,7 +1,7 @@
-#include "ast.hpp"
-#include "primitive.hpp"
-#include "attribute.hpp"
-#include "symtab.hpp"
+#include "ast.h"
+#include "primitive.h"
+#include "attribute.h"
+#include "symtab.h"
 #include <iostream>
 
 #define forall(iterator,listptr) \
@@ -19,7 +19,7 @@ using namespace std;
  *
  *
  * LatticeElem:
- *   To see how to work with LatticeElem and LatticeElemMaps, open "attribute.hpp"
+ *   To see how to work with LatticeElem and LatticeElemMaps, open "attribute.h"
  *
  *   In short, LatticeElem is a class that stores a number, a value of a particular
  *   variable or stored in a node. You can just assign a number to it, or TOP or BOTTOM.

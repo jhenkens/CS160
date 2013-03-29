@@ -1,9 +1,9 @@
 #include <algorithm>
-#include "symtab.hpp"
+#include "symtab.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include "attribute.hpp"
+#include "attribute.h"
 
 
 /****** SymName Implemenation **************************************/

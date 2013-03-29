@@ -109,14 +109,14 @@ func add_header() {
 	Hheader = Hheader "#ifndef AST_HEADER\n"
 	Hheader = Hheader "#define AST_HEADER\n"
 	Hheader = Hheader "\n//Automatically Generated C++ Abstract Syntax Tree Interface\n\n";
-	Hheader = Hheader "using namespace std;\n";
 	Hheader = Hheader "#include <list>\n";
 	Hheader = Hheader "#include <map>\n";
-	Hheader = Hheader "#include \"attribute.hpp\"\n";
-
+	Hheader = Hheader "#include \"attribute.h\"\n";
+	Hheader = Hheader "using namespace std;\n";
+    
 	Cheader = Cheader "//Automatically Generated C++ Abstract Syntax Tree Class Hierarchy\n\n";
 	Cheader = Cheader "#include <algorithm>\n";
-	Cheader = Cheader "#include \"ast.hpp\"\n";
+	Cheader = Cheader "#include \"ast.h\"\n";
 	Cheader = Cheader "extern int yylineno;\n";
 	
 #	Hheader = Hheader "\n";
@@ -402,7 +402,7 @@ func print_all_h() {
 
 	print "\n/********** Union Type (from parse) **********/\n" >> outfile;
 	print "#ifdef YYSTYPE_IS_TRIVIAL" >> outfile;
-	print "#error Make sure to include this file _before_ parser.hpp" >> outfile;
+	print "#error Make sure to include this file _before_ parser.h" >> outfile;
 	print "#endif" >> outfile;
 
 	print "typedef union" >> outfile;
@@ -487,11 +487,11 @@ func print_all_h() {
 
 BEGIN {
 	R = 0;
-	validoutput["hpp"] = 1;
+	validoutput["h"] = 1;
 	validoutput["cpp"] = 1;
 	if( !(outtype in validoutput) ) {
 		dumperr( 0, "must be called with \"-v outtype=type where type is"\
-				" one of the following: hpp, cpp" );
+				" one of the following: h, cpp" );
 	}
 
 	if( outfile=="" ) {
@@ -619,7 +619,7 @@ END {
 
 	  if ( outtype == "cpp" ) {
 		print_all_cpp();
-	  } else if ( outtype == "hpp") {
+	  } else if ( outtype == "h") {
 		print_all_h();
 	  }
 	} 

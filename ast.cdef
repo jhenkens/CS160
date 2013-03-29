@@ -46,6 +46,6 @@ Expr:IntLit ==> Primitive
 Expr:BoolLit ==> Primitive
 
 # these classes should not be generated automagically
-SymName external "symtab.hpp"
-Primitive external "primitive.hpp"
+SymName external "symtab.h"
+Primitive external "primitive.h"
 

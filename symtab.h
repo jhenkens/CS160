@@ -1,8 +1,8 @@
 #ifndef SYMTAB_HPP
 #define SYMTAB_HPP
 
-#include "ast.hpp"
-#include "attribute.hpp"
+#include "ast.h"
+#include "attribute.h"
 #include <assert.h>
 #include <vector>
 #include <string.h>

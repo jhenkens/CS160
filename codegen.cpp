@@ -1,9 +1,9 @@
-#include "ast.hpp"
-#include "symtab.hpp"
-#include "primitive.hpp"
-#include "assert.h"
 #include <typeinfo>
 #include <stdio.h>
+#include "ast.h"
+#include "symtab.h"
+#include "primitive.h"
+#include "assert.h"
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 #ifdef NOFOLDING
@@ -52,7 +52,10 @@ class Codegen : public Visitor
         //but we don't reach free memory till the fourth word
         static const int fFAfter = 4*wordsize;
 
+        enum { STACK, EAX, EBX, ECX, EDX};
+
         int label_count; //access with new_label
+        int DEST_LOCATION;
 
         // ********** Helper functions ********************************
 
@@ -190,6 +193,34 @@ class Codegen : public Visitor
 
         // HERE: more functions to emit code
         // Used inside binary expr to just handle the conditional part!
+        //
+        void emit_dest_move(const char* dest){
+            if(strcmp(dest,"%eax")!=0){
+                mpr("    mov %%eax, %s\n",dest);
+            }
+        }
+
+        const char* get_dest_reg_string(){
+            switch(DEST_LOCATION){
+                case STACK:
+                case EAX:
+                    return "%eax";
+                    break;
+                case EBX:
+                    return "%ebx";
+                    break;
+                case ECX:
+                    return "%ecx";
+                    break;
+                case EDX:
+                    return "%edx";
+                    break;
+                default:
+                    return "THISSHOULDN'THAPPEN";
+                    break;
+            }
+        }
+
         void emit_conditional(char* labelName, char* instr, int labelNum)
         {
             tprint("// %s:: Perform the cmparison, jump, otherwise set 0, and jump to done\n",labelName);
@@ -204,82 +235,240 @@ class Codegen : public Visitor
 
         void emit_binary_expr(Expr* e1, Expr* e2, LatticeElem& lE, char op, char* desc)
         {
+            const char* dest = get_dest_reg_string();
+            int myDest = DEST_LOCATION;
+            DEST_LOCATION = STACK;
+            tprint("//Dat dest %s\n",dest);
+
             if(!FOLDING || lE == TOP){
                 LatticeElem& lEL = e1->m_attribute.m_lattice_elem;
                 LatticeElem& lER = e2->m_attribute.m_lattice_elem;
                 //lC = leftIsConstant, rC = rightIsConstant
                 bool lC = lEL != TOP;
                 bool rC = lER != TOP;
-
-                if(!FOLDING || !lC){
-                    visit(e1);
-                }
-                if(!FOLDING || !rC){
-                    visit(e2);
-                }
+                unsigned char foldingMode = FOLDING?( lC?1:(0 + rC)?2:0):0;
                 tprint("// Visit %s\n",desc);
-                //If not folding, or if the right is not constant
-                //Then pop. We do right first because if we aren't folding, or if
-                //both are non-constant, then we need to pop expr2 first.
-                if(!FOLDING || !rC ){
-                    mpr("    pop %%ebx\n");
-                } else{
-                    tprint("// Visit %s not folded, but right hand side did fold\n",desc);
-                    mpr("    mov $%d, %%ebx\n",lER.value);
-                }
-                if(!FOLDING || !lC){
-                    mpr("    pop %%eax\n");
-                } else{
-                    tprint("// Visit %s not folded, but left hand side did fold\n",desc);
-                    mpr("    mov $%d, %%eax\n",lEL.value);
-                }
-                switch(op){
-                    case '*':
-                        mpr("    imul %%ebx\n");
+                switch(foldingMode){
+                    //NotFolding or !lC && !rC
+                    case 0:
+                        tprint("// In foldingMode switch, case 0.\n");
+                        visit(e2);
+                        DEST_LOCATION = EAX;
+                        visit(e1);
+                        mpr("    pop %%ebx\n");
+                        switch(op){
+                            case '*':
+                                mpr("    imul %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '/':
+                                mpr("    cdq\n");
+                                mpr("    idiv %%ebx\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '+':
+                                mpr("    leal (%%eax, %%ebx), %s\n",dest);
+                                break;
+                            case '-':
+                                mpr("    sub %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '&':
+                                mpr("    and %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '|':
+                                mpr("    or %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '<':
+                                emit_conditional(desc,"jl", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '>':
+                                emit_conditional(desc,"jg", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is <=
+                            case '(':
+                                emit_conditional(desc,"jle", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is >=
+                            case ')':
+                                emit_conditional(desc,"jge", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '=':
+                                emit_conditional(desc,"je", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '!':
+                                emit_conditional(desc,"jne", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            default:
+                                fprintf(stderr,"Op not defined in emit_binary_expr!\n");
+                                throw "Op not defined in emit_binary_expr!";
+                        }
+
                         break;
-                    case '/':
-                        mpr("    cdq\n");
-                        mpr("    idiv %%ebx\n");
+                    //Left Folded
+                    case 1:
+                        tprint("// In foldingMode switch, case 1.\n");
+                        visit(e2);
+                        mpr("    pop %%ebx\n");
+                        switch(op){
+                            case '*':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                mpr("    imul %%ebx\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '/':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                mpr("    cdq\n");
+                                mpr("    idiv %%ebx\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '+':
+                                mpr("    leal %d(%%ebx), %s\n",lEL.value,dest);
+                                break;
+                            case '-':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                mpr("    sub %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '&':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                mpr("    and %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '|':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                mpr("    or %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '<':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"jl", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '>':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"jg", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is <=
+                            case '(':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"jle", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is >=
+                            case ')':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"jge", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '=':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"je", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '!':
+                                mpr("    mov $%d, %%eax\n",lEL.value);
+                                emit_conditional(desc,"jne", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            default:
+                                fprintf(stderr,"Op not defined in emit_binary_expr!\n");
+                                throw "Op not defined in emit_binary_expr!";
+                        }
                         break;
-                    case '+':
-                        mpr("    add %%ebx, %%eax\n");
-                        break;
-                    case '-':
-                        mpr("    sub %%ebx, %%eax\n");
-                        break;
-                    case '&':
-                        mpr("    and %%ebx, %%eax\n");
-                        break;
-                    case '|':
-                        mpr("    or %%ebx, %%eax\n");
-                        break;
-                    case '<':
-                        emit_conditional(desc,"jl", new_label());
-                        break;
-                    case '>':
-                        emit_conditional(desc,"jg", new_label());
-                        break;
-                    // This is <=
-                    case '(':
-                        emit_conditional(desc,"jle", new_label());
-                        break;
-                    // This is >=
-                    case ')':
-                        emit_conditional(desc,"jge", new_label());
-                        break;
-                    case '=':
-                        emit_conditional(desc,"je", new_label());
-                        break;
-                    case '!':
-                        emit_conditional(desc,"jne", new_label());
+                    //Right Folded
+                    case 2:
+                        tprint("// In foldingMode switch, case 2.\n");
+                        visit(e1);
+                        mpr("    pop %%eax\n");
+                        switch(op){
+                            case '*':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                mpr("    imul %%ebx\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '/':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                mpr("    cdq\n");
+                                mpr("    idiv %%ebx\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '+':
+                                mpr("    leal %d(%%eax), %s\n",lER.value,dest);
+                                break;
+                            case '-':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                mpr("    sub %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '&':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                mpr("    and %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '|':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                mpr("    or %%ebx, %%eax\n");
+                                emit_dest_move(dest);
+                                break;
+                            case '<':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"jl", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '>':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"jg", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is <=
+                            case '(':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"jle", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            // This is >=
+                            case ')':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"jge", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '=':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"je", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            case '!':
+                                mpr("    mov $%d, %%ebx\n",lER.value);
+                                emit_conditional(desc,"jne", new_label());
+                                emit_dest_move(dest);
+                                break;
+                            default:
+                                fprintf(stderr,"Op not defined in emit_binary_expr!\n");
+                                throw "Op not defined in emit_binary_expr!";
+                        }
                         break;
                     default:
-                        throw "Op not defined in emit_binary_expr!";
+                        fprintf(stderr,"Reached unreachable statement in emit_binary_expr\n");
+                        throw "Reached unreachable statement in emit_binary_expr";
+                        break;
                 }
-                mpr("    push %%eax\n");
+                if(myDest == STACK){
+                    mpr("    push %%eax\n");
+                }
             } else{
                 emit_integer_push(desc,lE.value," - FOLDED");
             }
+            DEST_LOCATION=STACK;
         }
 
         void emit_non_folded_mov(int offset){
@@ -341,6 +530,7 @@ class Codegen : public Visitor
             tprint("// Visiting args. Each will be pushed onto stack in reverse order.\n");
             tprint("// reverse order is x86 calling convention, as per http://www.delorie.com/djgpp/doc/ug/asm/calling.html\n");
             forallrev(exprItr,expr_list){
+                DEST_LOCATION=STACK;
                 visit((*exprItr));
                 count++;
                 dec+=wordsize;
@@ -353,12 +543,22 @@ class Codegen : public Visitor
 
         void emit_integer_push(const char* str, int val, const char* str2 = ""){
             tprint("//  %s%s int push( %d ) \n",str,str2,val);
-            mpr("    pushl $%d\n",val);
+            if(DEST_LOCATION !=STACK){
+                tprint("// Moving directly into requested dest reg!\n");
+                mpr("    movl $%d, %s\n",val,get_dest_reg_string());
+            } else{
+                mpr("    pushl $%d\n",val);
+            }
         }
 
         void emit_memory_push(const char* str, int val, const char* str2 = ""){
             tprint("//  %s%s  Memory push offset( %d ) \n",str,str2,val);
-            mpr("    pushl -%d(%%ebp)\n",val);
+            if(DEST_LOCATION !=STACK){
+                tprint("// Moving directly into requested dest reg!\n");
+                mpr("    movl -%d(%%ebp), %s\n",val,get_dest_reg_string());
+            } else{
+                mpr("    pushl -%d(%%ebp)\n",val);
+            }
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -374,6 +574,7 @@ class Codegen : public Visitor
 
         void visitProgram(Program * p)
         {
+            DEST_LOCATION = STACK;
             mpr(".globl _Main\n");
             mpr(".globl Main\n");
             /*list<Func_ptr>::iterator listItr;
@@ -684,11 +885,18 @@ class Codegen : public Visitor
         void visitUminus(Uminus * p)
         {
             if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
+                const char* dest = get_dest_reg_string();
+                int myDest = DEST_LOCATION;
+                DEST_LOCATION = EAX;
                 visit(p->m_expr);
                 tprint("// Uminus\n");
-                mpr("    pop %%eax\n");
+                //mpr("    pop %%eax\n");
                 mpr("    neg %%eax\n");
-                mpr("    push %%eax\n");
+                emit_dest_move(dest);
+                if(myDest==STACK){
+                    mpr("    push %%eax\n");
+                }
+                DEST_LOCATION = STACK;
             } else{
                 emit_integer_push("Uminus - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
@@ -697,13 +905,19 @@ class Codegen : public Visitor
         {
             // From: http://stackoverflow.com/questions/2639173/x86-assembly-abs-implementation
             if(!FOLDING || p->m_attribute.m_lattice_elem == TOP){
+                const char* dest = get_dest_reg_string();
+                int myDest = DEST_LOCATION;
+                DEST_LOCATION = EAX;
                 visit(p->m_expr);
                 tprint("// Magnitude\n");
-                mpr("    pop %%eax\n");
                 mpr("    mov %%eax, %%ebx\n");
                 mpr("    neg %%eax\n");
                 mpr("    cmovl %%ebx, %%eax\n");
-                mpr("    push %%eax\n");
+                emit_dest_move(dest);
+                if(myDest==STACK){
+                    mpr("    push %%eax\n");
+                }
+                DEST_LOCATION = STACK;
             } else{
                 emit_integer_push("Magnitude - FOLDED",p->m_attribute.m_lattice_elem.value);
             }
