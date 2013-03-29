@@ -1,8 +1,0 @@
-function int Main() {
-    if(true){
-        if(true){
-            a = 5;
-        }
-    }
-    return 0;
-}
