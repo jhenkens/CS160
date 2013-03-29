@@ -1,4 +1,5 @@
 #include "ast.h"
+// Fuck this is dirty, #including a cpp, but I couldn't figure out how to get xcode to build/link ast.o from autogenned ast.cpp, so this is the workaround.
 #include "ast.cpp"
 #include "y.tab.h"
 #include "symtab.h"
