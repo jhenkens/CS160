@@ -7,55 +7,54 @@ ASTBUILD = ./astbuilder.gawk
 
 TARGET	= simple
 
-OBJS += lexer.o parser.o main.o ast.o primitive.o ast2dot.o symtab.o typecheck.o constantfolding.o codegen.o
-RMFILES = core.* lexer.cpp parser.cpp parser.hpp parser.output ast.hpp ast.cpp simple.s simple.o start start.o $(TARGET) $(OBJS)
+OBJS += lexer.o y.tab.o main.o primitive.o ast2dot.o symtab.o typecheck.o constantfolding.o codegen.o
+RMFILES = core.* lexer.cpp y.tab.c y.tab.h y.output ast.h ast.cpp simple.s simple.o start start.o $(TARGET) $(OBJS)
 
 # dependencies
-$(TARGET): parser.cpp lexer.cpp parser.hpp $(OBJS)
+$(TARGET): y.tab.c lexer.cpp y.tab.h $(OBJS)
 	$(CPP) -o $(TARGET) $(OBJS) $(CPPFLAGS)
 
 # rules
-%.cpp: %.ypp
-	$(YACC) -o $(@:%.o=%.d) $<
+y.tab.c: parser.ypp
+	$(YACC) -o y.tab.c $<
 
 %.o: %.cpp
 	$(CPP) -o $@ -c $< $(CPPFLAGS)
 
-%.cpp: %.l
+%.o: %.c
+	$(CPP) -o $@ -c $< $(CPPFLAGS)
+
+%.cpp: %.lpp
 	$(LEX) -o$(@:%.o=%.d)  $<
 
 ast.cpp: ast.cdef 
 	$(ASTBUILD) -v outtype=cpp -v outfile=ast.cpp < ast.cdef 
 
-ast.hpp: ast.cdef 
-	$(ASTBUILD) -v outtype=hpp -v outfile=ast.hpp < ast.cdef
+ast.h: ast.cdef 
+	$(ASTBUILD) -v outtype=h -v outfile=ast.h < ast.cdef
 
 # source
-lexer.o: lexer.cpp parser.hpp ast.hpp
-lexer.cpp: lexer.l
+lexer.o: lexer.cpp y.tab.h ast.h
+lexer.cpp: lexer.lpp
 
-parser.o: parser.cpp parser.hpp
-parser.cpp: parser.ypp ast.hpp primitive.hpp symtab.hpp
+y.tab.o: y.tab.c y.tab.h
+y.tab.c: parser.ypp ast.h primitive.h symtab.h
 
-main.o: parser.hpp ast.hpp symtab.hpp primitive.hpp constantfolding.cpp typecheck.cpp codegen.cpp
-ast2dot.o: parser.hpp ast.hpp symtab.hpp primitive.hpp attribute.hpp
+main.o: y.tab.h ast.h ast.cpp symtab.h primitive.h constantfolding.cpp typecheck.cpp codegen.cpp
+ast2dot.o: y.tab.h ast.h symtab.h primitive.h attribute.h
 
-ast.o: ast.cpp ast.hpp primitive.hpp symtab.hpp attribute.hpp
 ast.cpp: ast.cdef
-ast.hpp: ast.cdef
+ast.h: ast.cdef
 
-primitive.o: primitive.hpp primitive.cpp ast.hpp
+primitive.o: primitive.h primitive.cpp ast.h
 
-typecheck.o: typecheck.cpp ast.hpp symtab.hpp primitive.hpp attribute.hpp
+typecheck.o: typecheck.cpp ast.h symtab.h primitive.h attribute.h
 
-constantfolding.o: constantfolding.cpp ast.hpp symtab.hpp primitive.hpp attribute.hpp
+constantfolding.o: constantfolding.cpp ast.h symtab.h primitive.h attribute.h
 
-codegen.o: codegen.cpp ast.hpp symtab.hpp primitive.hpp
-
-turnin: clean
-	mkdir codegen
-	cp ast2dot.cpp astbuilder.gawk ast.cdef attribute.hpp constantfolding.cpp lexer.l main.cpp Makefile parser.ypp primitive.cpp primitive.hpp README symtab.cpp symtab.hpp typecheck.cpp codegen.cpp codegen
+codegen.o: codegen.cpp ast.h symtab.h primitive.h
 
 clean:
 	rm -f $(RMFILES)
-	rm -rf codegen
+
+
