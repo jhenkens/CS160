@@ -1,8 +1,0 @@
-function int Main(){
-    var int a;
-    a = -1;
-    if(true){
-        a = 5;
-    }
-    return a;
-}
